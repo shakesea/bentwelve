@@ -26,16 +26,6 @@ export default async function ReportPage() {
         <h1 className="text-3xl font-bold text-gray-800">Transaction Reports</h1>
       </div>
 
-      {/* 🎥 Video autoplay */}
-      <video
-        className="w-[100] max-w-2xl rounded-xl shadow-lg"
-        autoPlay
-        loop
-      >
-        <source src="/video/Ayam.mp4" type="video/mp4" />
-        Your browser does not support the video tag.
-      </video>
-
       {/* Filter Button */}
       <div className="flex justify-end mb-6">
         <button className="bg-pink-500 text-white px-4 py-2 rounded-md hover:bg-pink-600 transition-colors">

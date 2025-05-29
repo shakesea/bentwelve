@@ -1,5 +1,4 @@
 import SideBar from "../ui/dashboard/nav-links";
-import ProfileSummary from "../ui/dashboard/profile";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   return (

@@ -1,8 +1,9 @@
 import Image from 'next/image';
-import { fetchTotalProducts, fetchTotalRevenue, fetchMostSoldProduct, fetchMonthlySales } from '../lib/data';
 import ChartClient from '@/app/ui/dashboard/chart-client';
 import { Suspense } from 'react';
 import { RevenueChartSkeleton } from '@/app/ui/skeletons';
+import AnalyticsSection from '@/app/ui/dashboard/analytics-section';
+import { fetchMonthlySales } from '../lib/data';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -17,17 +18,7 @@ import {
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
 export default async function DashboardPage() {
-  // Fetch analytics data
-  const [totalProducts, totalRevenue, mostSoldProduct, monthlySales] = await Promise.all([
-    fetchTotalProducts(),
-    fetchTotalRevenue(),
-    fetchMostSoldProduct(),
-    fetchMonthlySales(),
-  ]);
-
-  const formatCurrency = (value: number): string => {
-    return `Rp ${value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')}`;
-  };
+  const monthlySales = await fetchMonthlySales();
 
   return (
     <main className="flex-1 bg-[#FDEBEB] px-10">
@@ -55,35 +46,13 @@ export default async function DashboardPage() {
         <SummaryCard title="Total Customer" value="12" note="1 Baru" color="text-red-500" />
       </div>
 
-      <div className="bg-white rounded-xl shadow p-6 mb-8">
-        <h2 className="text-lg font-semibold text-gray-700 mb-4">Analitik Bisnis</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="p-4 bg-gray-50 rounded-lg">
-            <h3 className="text-sm font-medium text-gray-500">Total Produk</h3>
-            <p className="text-xl font-bold text-gray-800">{totalProducts}</p>
-          </div>
-          <div className="p-4 bg-gray-50 rounded-lg">
-            <h3 className="text-sm font-medium text-gray-500">Total Pendapatan</h3>
-            <p className="text-xl font-bold text-gray-800">{formatCurrency(totalRevenue)}</p>
-          </div>
-          <div className="p-4 bg-gray-50 rounded-lg">
-            <h3 className="text-sm font-medium text-gray-500">Produk Terlaris</h3>
-            <p className="text-xl font-bold text-gray-800">
-              {mostSoldProduct ? mostSoldProduct.nama_produk : 'N/A'} 
-              {mostSoldProduct && ` (${mostSoldProduct.total_sold} terjual)`}
-            </p>
-          </div>
-        </div>
-      </div>
+      <Suspense fallback={<RevenueChartSkeleton />}>
+        <AnalyticsSection monthlySales={monthlySales} />
+      </Suspense>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Suspense fallback={<RevenueChartSkeleton />}>
-          <ChartClient
-            monthlySales={monthlySales}
-            totalProducts={totalProducts}
-            totalRevenue={totalRevenue}
-            mostSoldProduct={mostSoldProduct}
-          />
+          <ChartClient monthlySales={monthlySales} totalProducts={0} totalRevenue={0} mostSoldProduct={null} />
         </Suspense>
         <div className="bg-white rounded-xl shadow p-6">
           <h2 className="text-lg font-semibold text-gray-700 mb-4">Komentar Terbaru</h2>
