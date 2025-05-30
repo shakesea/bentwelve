@@ -1,41 +1,54 @@
-// actions.ts
+// app/lib/actions.ts
 'use server';
 
-import { z } from 'zod';
-import postgres from 'postgres';
 import { redirect } from 'next/navigation';
+import { revalidatePath } from 'next/cache';
+import { neon } from '@neondatabase/serverless';
+import { z } from 'zod';
 
+const sql = neon(process.env.DATABASE_URL!);
+
+// Schema for validating form data (for update)
 const FormSchema = z.object({
   id: z.string(),
-  customerId: z.string(),
-  amount: z.coerce.number(),
-  status: z.enum(['pending', 'paid']),
-  date: z.string(),
+  name: z.string().min(1, 'Product name is required'),
+  category: z.string().min(1, 'Category is required'),
+  price: z.coerce
+    .number()
+    .gt(0, 'Price must be greater than 0'),
 });
 
-const UpdateInvoice = FormSchema.omit({ id: true, date: true });
-
-export async function updateInvoice(id: string, formData: FormData) {
-  const { customerId, amount, status } = UpdateInvoice.parse({
-    customerId: formData.get('customerId'),
-    amount: formData.get('amount'),
-    status: formData.get('status'),
+export async function updateProduct(id: string, prevState: any, formData: FormData) {
+  // Validate form data
+  const validatedFields = FormSchema.safeParse({
+    id,
+    name: formData.get('name'),
+    category: formData.get('category'),
+    price: formData.get('price'),
   });
 
-  const amountInCents = amount * 100;
+  if (!validatedFields.success) {
+    return {
+      errors: validatedFields.error.flatten().fieldErrors,
+      message: 'Validation failed. Please check the form.',
+    };
+  }
 
-  const sql = postgres(process.env.POSTGRES_URL!, { ssl: 'require' });
+  const { name, category, price } = validatedFields.data;
 
   try {
+    // Update the product in the database
     await sql`
-      UPDATE invoices
-      SET customer_id = ${customerId}, amount = ${amountInCents}, status = ${status}
-      WHERE id = ${id};
+      UPDATE public.products
+      SET nama_produk = ${name}, kategori = ${category}, harga = ${price.toString()}
+      WHERE id_produk = ${id}
     `;
 
-    redirect(`/dashboard/invoices/${id}`);
+    // Revalidate the products page to reflect the update
+    revalidatePath('/dashboard/products');
+    return { message: 'Product updated successfully', errors: {} };
   } catch (error) {
-    console.error('Failed to update invoice:', error);
-    throw new Error('Failed to update invoice');
+    console.error('Failed to update product:', error);
+    return { message: 'Failed to update product.', errors: {} };
   }
 }

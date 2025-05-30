@@ -2,11 +2,11 @@ import { neon } from '@neondatabase/serverless';
 
 // Interface for products (matches the database schema)
 export interface Product {
-  id_produk: string;
-  nama_produk: string;
-  harga: string;
-  kategori: string;
-  gambar: string;
+  id: string; // Sesuaikan dengan id_produk
+  name: string; // Sesuaikan dengan nama_produk
+  price: number; // Sesuaikan dengan harga (diubah ke number)
+  category: string; // Sesuaikan dengan kategori
+  image: string; // Sesuaikan dengan gambar
 }
 
 // Interface for transactions (matches the database schema)
@@ -39,17 +39,46 @@ function getDatabase() {
   return neon(process.env.DATABASE_URL);
 }
 
+// Fetch product by ID (untuk EditProductPage)
+export async function fetchProductById(id: string): Promise<Product | null> {
+  const sql = getDatabase();
+  try {
+    const result = await sql`
+      SELECT id_produk as id, nama_produk as name, harga as price, kategori as category, gambar as image
+      FROM public.products
+      WHERE id_produk = ${id}
+    ` as Product[];
+
+    // Konversi harga ke number jika disimpan sebagai string di database
+    if (result.length > 0) {
+      const product = result[0];
+      return {
+        ...product,
+        price: parseFloat(product.price.toString().replace('Rp', '')),
+      };
+    }
+    return null;
+  } catch (error) {
+    console.error('Error fetching product by ID:', error);
+    throw new Error('Failed to fetch product.');
+  }
+}
+
 // Fetch products with optional search term
 export async function fetchProducts(searchTerm: string = ''): Promise<Product[]> {
   const sql = getDatabase();
   try {
     const products = await sql`
-      SELECT id_produk, nama_produk, harga, kategori, gambar
+      SELECT id_produk as id, nama_produk as name, harga as price, kategori as category, gambar as image
       FROM public.products
       WHERE nama_produk ILIKE ${'%' + searchTerm + '%'}
     ` as Product[];
-    console.log('Fetched products:', products);
-    return products;
+
+    // Konversi harga ke number
+    return products.map(product => ({
+      ...product,
+      price: parseFloat(product.price.toString().replace('Rp', '')),
+    }));
   } catch (error) {
     console.error('Error fetching products:', error);
     return [];
