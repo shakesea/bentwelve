@@ -19,12 +19,12 @@ export default async function ProductsPage({ searchParams }: PageProps) {
 
   async function handleAdd() {
     'use server';
-    redirect('/dashboard/products/tambah');
+    redirect(`/ui/dashboard/cruds/create`);
   }
 
   async function handleEdit(id_product: string) {
     'use server';
-    redirect(`/dashboard/products/edit?id=${encodeURIComponent(id_product)}`);
+    redirect(`/ui/dashboard/cruds/update?id=${encodeURIComponent(id_product)}`);
   }
 
   return (
