@@ -4,12 +4,12 @@ import { neon } from '@neondatabase/serverless';
 export interface Product {
   id: string; // Sesuaikan dengan id_produk
   name: string; // Sesuaikan dengan nama_produk
-  price: number; // Sesuaikan dengan harga (diubah ke number)
-  category: string; // Sesuaikan dengan kategori
-  image: string; // Sesuaikan dengan gambar
+  price: number; // harga sebagai number
+  category: string;
+  image: string;
 }
 
-// Interface for transactions (matches the database schema)
+// Interface for transactions
 export interface Transaction {
   id_transaksi: string;
   id_produk: string;
@@ -31,6 +31,17 @@ export interface MostSoldProduct {
   total_sold: number;
 }
 
+// Interface for invoices
+export interface Invoice {
+  id: string;
+  name: string;
+  email: string;
+  amount: number;
+  date: string;
+  status: 'paid' | 'pending' | 'overdue';
+  image_url: string;
+}
+
 // Initialize database connection
 function getDatabase() {
   if (!process.env.DATABASE_URL) {
@@ -49,7 +60,6 @@ export async function fetchProductById(id: string): Promise<Product | null> {
       WHERE id_produk = ${id}
     ` as Product[];
 
-    // Konversi harga ke number jika disimpan sebagai string di database
     if (result.length > 0) {
       const product = result[0];
       return {
@@ -74,7 +84,6 @@ export async function fetchProducts(searchTerm: string = ''): Promise<Product[]>
       WHERE nama_produk ILIKE ${'%' + searchTerm + '%'}
     ` as Product[];
 
-    // Konversi harga ke number
     return products.map(product => ({
       ...product,
       price: parseFloat(product.price.toString().replace('Rp', '')),
@@ -94,7 +103,6 @@ export async function fetchTransactions(): Promise<Transaction[]> {
       FROM public.transactions
       ORDER BY tanggal DESC
     ` as Transaction[];
-    console.log('Fetched transactions:', transactions);
     return transactions;
   } catch (error) {
     console.error('Error fetching transactions:', error);
@@ -168,5 +176,69 @@ export async function fetchMonthlySales(): Promise<MonthlySales[]> {
   } catch (error) {
     console.error('Error fetching monthly sales:', error);
     return [];
+  }
+}
+
+// Fetch filtered invoices with pagination
+export async function fetchFilteredInvoices(query: string = '', currentPage: number = 1): Promise<Invoice[]> {
+  const sql = getDatabase();
+  const PAGE_SIZE = 10;
+  const offset = (currentPage - 1) * PAGE_SIZE;
+
+  try {
+    const invoices = await sql`
+      SELECT 
+        id, name, email, amount, date, status, image_url
+      FROM public.invoices
+      WHERE name ILIKE ${'%' + query + '%'}
+      ORDER BY date DESC
+      LIMIT ${PAGE_SIZE}
+      OFFSET ${offset}
+    ` as Invoice[];
+
+    return invoices;
+  } catch (error) {
+    console.error('Error fetching invoices:', error);
+    return [];
+  }
+}
+
+// Fetch filtered transactions with pagination
+export async function fetchFilteredTransactions(query: string = '', currentPage: number = 1): Promise<Transaction[]> {
+  const sql = getDatabase();
+  const PAGE_SIZE = 10;
+  const offset = (currentPage - 1) * PAGE_SIZE;
+
+  try {
+    const transactions = await sql`
+      SELECT 
+        id_transaksi, id_produk, nama_pembeli, tanggal, total_harga
+      FROM public.transactions
+      WHERE nama_pembeli ILIKE ${'%' + query + '%'}
+      ORDER BY tanggal DESC
+      LIMIT ${PAGE_SIZE}
+      OFFSET ${offset}
+    ` as Transaction[];
+
+    return transactions;
+  } catch (error) {
+    console.error('Error fetching filtered transactions:', error);
+    return [];
+  }
+}
+
+// Count total filtered transactions (for pagination)
+export async function fetchTransactionCount(query: string = ''): Promise<number> {
+  const sql = getDatabase();
+  try {
+    const result = await sql`
+      SELECT COUNT(*) as total
+      FROM public.transactions
+      WHERE nama_pembeli ILIKE ${'%' + query + '%'}
+    `;
+    return Number(result[0].total) || 0;
+  } catch (error) {
+    console.error('Error fetching transaction count:', error);
+    return 0;
   }
 }
