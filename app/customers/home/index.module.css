@@ -1,0 +1,295 @@
+.container {
+  font-family: Arial, sans-serif;
+  text-align: center;
+}
+
+/* Header dan Carousel */
+.header {
+  position: relative;
+}
+
+.carouselSection {
+  position: relative;
+}
+
+.carouselContent {
+  width: 100%;
+}
+
+.carouselItem {
+  position: relative;
+}
+
+.carouselImage {
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+}
+
+.carouselText {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: white;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+  text-align: center;
+}
+
+.carouselHeading {
+  font-size: 2.5em;
+  font-weight: bold;
+}
+
+.carouselSubheading {
+  font-size: 1.2em;
+  margin-top: 10px;
+}
+
+.carouselLink {
+  display: inline-block;
+  margin-top: 15px;
+  color: white;
+  text-decoration: underline;
+}
+
+.carouselButtonLeft,
+.carouselButtonRight {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background-color: #f472b6;
+  color: white;
+  padding: 10px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  z-index: 10; /* Menambahkan z-index agar tombol berada di depan */
+}
+
+.carouselButtonLeft {
+  left: 20px;
+}
+
+.carouselButtonRight {
+  right: 20px;
+}
+
+.carouselButtonLeft:hover,
+.carouselButtonRight:hover {
+  background-color: #ec4899;
+}
+
+/* Welcome Section */
+.welcomeSection {
+  padding: 20px;
+}
+
+.welcomeText {
+  font-size: 2.5em;
+  font-weight: bold;
+  color: #2d3748;
+  background-color: #ffffff;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Specialty Section */
+.specialtySection {
+  padding: 40px 20px;
+}
+
+.sectionHeading {
+  font-size: 2em;
+  font-weight: bold;
+  color: #2d3748;
+  margin-bottom: 20px;
+}
+
+.specialtyImages {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+}
+
+.specialtyImage {
+  border-radius: 10px;
+  object-fit: cover;
+}
+
+/* Services Section */
+.servicesSection {
+  padding: 40px 20px;
+  background-color: #ffffff;
+}
+
+.serviceItems {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.serviceItem {
+  width: 200px;
+  text-align: center;
+}
+
+.serviceImage {
+  border-radius: 10px;
+  object-fit:-REPLACEDcover;
+}
+
+.serviceHeading {
+  font-size: 1.2em;
+  font-weight: bold;
+  margin-top: 10px;
+}
+
+.serviceDescription {
+  color: #4a5568;
+  margin-top: 5px;
+}
+
+.serviceLink {
+  display: inline-block;
+  margin-top: 10px;
+  color: #2d3748;
+  text-decoration: underline;
+}
+
+/* Location Section */
+.locationSection {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40px 20px;
+  background-color: #ffffff;
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  margin: 20px 0;
+}
+
+.locationContent {
+  text-align: left;
+  max-width: 600px;
+}
+
+.locationText {
+  color: #4a5568;
+  margin-top: 10px;
+}
+
+.locationButton {
+  margin-top: 20px;
+  background-color: #2d3748;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 20px;
+  transition: box-shadow 0.3s;
+}
+
+.locationButton:hover {
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+}
+
+.locationImage {
+  border-radius: 10px;
+  margin-top: 20px;
+}
+
+/* Decoration Section */
+.decorationSection {
+  position: relative;
+  margin: 20px 0;
+}
+
+.decorationImage {
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+  border-radius: 10px;
+}
+
+.decorationText {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  color: white;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.decorationHeading {
+  font-size: 2em;
+  font-weight: bold;
+}
+
+.decorationSubheading {
+  font-size: 1.5em;
+  font-weight: bold;
+  color: #f472b6; /* Warna pink sesuai gambar */
+  margin-top: 10px;
+}
+
+.decorationDescription {
+  font-size: 1.2em;
+  margin-top: 10px;
+  max-width: 600px;
+}
+
+/* Footer Section */
+.footer {
+  background-color: #ffffff;
+  padding: 40px 20px;
+}
+
+.footerContent {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.footerHeading {
+  font-size: 2em;
+  font-weight: bold;
+  color: #2d3748;
+}
+
+.footerSubheading {
+  font-size: 1.2em;
+  color: #4a5568;
+  margin-top: 10px;
+}
+
+.corporateGifting {
+  margin-top: 20px;
+}
+
+.corporateHeading {
+  font-size: 1.5em;
+  font-weight: bold;
+  color: #2d3748;
+}
+
+.corporateText {
+  color: #4a5568;
+  margin-top: 10px;
+}
+
+.corporateLink {
+  display: inline-block;
+  margin-top: 10px;
+  color: #2d3748;
+  text-decoration: underline;
+}
+
+@media (max-width: 768px) {
+  .carouselButtonLeft {
+    left: 10px;
+  }
+  .carouselButtonRight {
+    right: 10px;
+  }
+}

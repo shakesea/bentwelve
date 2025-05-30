@@ -3,40 +3,43 @@
 import Image from 'next/image';
 import { useState, useEffect } from 'react';
 import Welcome from '@/app/ui/customers/welcome';
+import styles from './index.module.css';
 
 const carouselItems = [
   {
-    image: '/bunga.png',
-    alt: 'Description',
-    heading: 'FlowerScotch',
-    subheading: 'Est. 2020',
+    image: '/married.png',
+    alt: 'Deskripsi',
+    heading: 'Musim Pernikahan',
+    subheading: 'Biarkan hari spesial Anda mekar',
     subheadingColor: 'text-pink-400',
-    description:
-      'Elegant flower arrangements with a touch of luxury for every special moment. Bring beauty to every occasion! 🌸✨',
+    description: 'Temukan kami, di mana impian Anda menjadi nyata',
   },
   {
-    image: '/decor.png',
-    alt: 'Bouquet',
-    heading: 'Decoration',
-    subheading: '🎀 Elegant Decoration for Various Events',
+    image: '/decor2.png',
+    alt: 'Dekorasi',
+    heading: 'Dekorasi',
+    subheading: '🎀 Dekorasi Elegan untuk Berbagai Acara',
     subheadingColor: 'text-red-400',
-    description: 'Make special moments more memorable with floral decorations for weddings, formal events, and intimate celebrations.',
+    description:
+      'Buat momen spesial lebih berkesan dengan dekorasi bunga untuk pernikahan, acara formal, dan perayaan intim.',
   },
   {
     image: '/workshop.png',
-    alt: 'Bouquet',
-    heading: 'Event & Workshop',
-    subheading: '🌿 Learn to Arrange Flowers',
+    alt: 'Workshop',
+    heading: 'Acara & Workshop',
+    subheading: '🌿 Belajar Merangkai Bunga',
     subheadingColor: 'text-green-400',
-    description: 'Join an exclusive workshop from Flowerscotchs and learn how to create beautiful bouquets with professional techniques.',
+    description:
+      'Ikuti workshop eksklusif dari Flowerscotchs dan pelajari cara membuat buket indah dengan teknik profesional.',
   },
   {
-    image: '/flowers.png',
-    alt: 'Bouquet',
-    heading: 'Bouquet & Fresh Flower',
-    subheading: '💐 Fresh Bouquet & Flower Collection',
+    image: '/bucket.png',
+    alt: 'Buket',
+    heading: 'Buket & Bunga Segar',
+    subheading: '💐 Koleksi Buket & Bunga Segar',
     subheadingColor: 'text-blue-400',
-    description: 'From roses to exotic flowers, we bring you beautiful bouquets crafted with love for every occasion.',
+    description:
+      'Dari mawar hingga bunga eksotis, kami menghadirkan buket indah yang dibuat dengan cinta untuk setiap acara.',
   },
 ];
 
@@ -67,102 +70,188 @@ export default function FlowersPage() {
   };
 
   return (
-    <div className="">
-      {/* Welcome Text with Fade In */}
-      <div className="text-center py-8">
-        <h1 className="text-4xl font-bold text-gray-800 animate-fade-in rounded-lg bg-[#FFBE98] p-6 shadow-lg my-6">
+    <div className={styles.container}>
+      {/* Header Section dengan Carousel */}
+      <header className={styles.header}>
+        <section className={styles.carouselSection}>
+          <button onClick={handlePrev} className={styles.carouselButtonLeft}>
+            ←
+          </button>
+
+          <div className={styles.carouselContent}>
+            {carouselItems.map((item, index) => (
+              <div
+                key={index}
+                className={`${styles.carouselItem} ${
+                  index === currentIndex ? 'block' : 'hidden'
+                }`}
+              >
+                <Image
+                  src={item.image}
+                  alt={item.alt}
+                  width={1200}
+                  height={400}
+                  className={styles.carouselImage}
+                />
+                <div className={styles.carouselText}>
+                  <h1 className={styles.carouselHeading}>{item.heading}</h1>
+                  <p className={styles.carouselSubheading}>{item.subheading}</p>
+                  <a href="#kontak" className={styles.carouselLink}>
+                    {item.description}
+                  </a>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <button onClick={handleNext} className={styles.carouselButtonRight}>
+            →
+          </button>
+        </section>
+      </header>
+
+      {/* Welcome Text */}
+      <div className={styles.welcomeSection}>
+        <h1 className={styles.welcomeText}>
           <Welcome />
         </h1>
       </div>
-      
-      {/* Carousel Section */}
-      <section className="relative flex flex-col md:flex-row justify-center gap-6 p-6">
-        <button
-          onClick={handlePrev}
-          className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-pink-400 text-white p-2 rounded-full hover:bg-pink-500"
-        >
-          &larr;
-        </button>
 
-        <div className="flex flex-col md:flex-row gap-6">
-          {carouselItems.map((item, index) => (
-            <div
-              key={index}
-              className={`bg-[#FFBE98] rounded-lg p-6 flex-1 transition-opacity duration-500 shadow-lg my-6 ${index === currentIndex ? 'block' : 'hidden md:block'} ${index === currentIndex ? 'opacity-100' : 'opacity-50'}`}
-            >
-              <Image
-                src={item.image}
-                alt={item.alt}
-                width={300}
-                height={200}
-                className="w-full h-48 object-cover rounded-lg"
-              />
-              <h2 className="text-2xl font-bold mt-4 rounded-lg">{item.heading}</h2>
-              <p className={`text-sm mt-2 ${item.subheadingColor} rounded-lg`}>{item.subheading}</p>
-              <p className="text-gray-600 mt-2 rounded-lg">{item.description}</p>
-            </div>
-          ))}
-        </div>
-
-        <button
-          onClick={handleNext}
-          className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-pink-400 text-white p-2 rounded-full hover:bg-pink-500"
-        >
-          &rarr;
-        </button>
-      </section>
-
-      {/* Best Deal Bouquet Section */}
-      <section className="bg-[#FEECE2] py-12 text-center rounded-sm shadow-lg my-12">
-        {/* <h2 className="text-4xl font-bold font-cursive text-gray-800 rounded-lg">Best Deal Bouquet</h2> */}
-        <h2 className="romanesco text-[70px] font-bold text-gray-800">
-          Special Flower Packages
-        </h2>
-        <p className="text-pink-400 mt-4 rounded-lg">
-          🌸 Share the love, touch the heart with a special flower arrangement! 🌟
-        </p>
-        <div className="flex justify-center gap-6 mt-8">
+      {/* Bagian Spesialisasi */}
+      <section className={styles.specialtySection}>
+        <h2 className={styles.sectionHeading}>Spesialisasi Kami</h2>
+        <div className={styles.specialtyImages}>
           <Image
             src="/f1.png"
-            alt="Bouquet 1"
-            width={150}
-            height={150}
-            className="rounded-lg"
+            alt="Spesialisasi 1"
+            width={200}
+            height={200}
+            className={styles.specialtyImage}
           />
           <Image
             src="/f2.png"
-            alt="Bouquet 2"
-            width={150}
-            height={150}
-            className="rounded-lg"
+            alt="Spesialisasi 2"
+            width={200}
+            height={200}
+            className={styles.specialtyImage}
           />
           <Image
             src="/f3.png"
-            alt="Bouquet 3"
-            width={150}
-            height={150}
-            className="rounded-lg"
+            alt="Spesialisasi 3"
+            width={200}
+            height={200}
+            className={styles.specialtyImage}
           />
         </div>
       </section>
 
-      {/* Our Location Section */}
-      <section className="flex flex-col md:flex-row items-center justify-center gap-6 p-6 bg-[#FFBE98] rounded-lg shadow-lg my-6">
-        <div className="text-left">
-          <h2 className="text-4xl font-bold font-cursive text-gray-800 rounded-lg">Our Location</h2>
-          <p className="text-gray-600 mt-4 rounded-lg">
-            Jl. Melati Indah No. 27, Kel. Sakura, Kec. Bloomville, Kota Florencia 12345 🌸
+      {/* Bagian Layanan */}
+      <section className={styles.servicesSection}>
+        <h2 className={styles.sectionHeading}>Layanan Flowerscotch</h2>
+        <div className={styles.serviceItems}>
+          <div className={styles.serviceItem}>
+            <Image
+              src="/chatgpt1.png"
+              alt="Sentuhan Pribadi"
+              width={200}
+              height={200}
+              className={styles.serviceImage}
+            />
+            <h3 className={styles.serviceHeading}>Terhubung Secara Pribadi</h3>
+            <p className={styles.serviceDescription}>
+              Layanan yang dapat disesuaikan...
+            </p>
+            <a href="#pelajari-lebih-lanjut" className={styles.serviceLink}>
+              Pelajari Lebih Lanjut
+            </a>
+          </div>
+          <div className={styles.serviceItem}>
+            <Image
+              src="/chatgpt3.png"
+              alt="Butuh Bunga Sekarang?"
+              width={200}
+              height={200}
+              className={styles.serviceImage}
+            />
+            <h3 className={styles.serviceHeading}>Butuh Bunga Sekarang?</h3>
+            <p className={styles.serviceDescription}>
+              Pesan di hari yang sama...
+            </p>
+            <a href="#pelajari-lebih-lanjut" className={styles.serviceLink}>
+              Pelajari Lebih Lanjut
+            </a>
+          </div>
+          <div className={styles.serviceItem}>
+            <Image
+              src="/chatgpt2.png"
+              alt="Jaminan Kepuasan"
+              width={200}
+              height={200}
+              className={styles.serviceImage}
+            />
+            <h3 className={styles.serviceHeading}>Jaminan Kepuasan</h3>
+            <p className={styles.serviceDescription}>Kepuasan terjamin...</p>
+            <a href="#pelajari-lebih-lanjut" className={styles.serviceLink}>
+              Pelajari Lebih Lanjut
+            </a>
+          </div>
+        </div>
+      </section>
+
+      {/* Bagian Lokasi */}
+      <section className={styles.locationSection}>
+        <div className={styles.locationContent}>
+          <h2 className={styles.sectionHeading}>Lokasi Kami</h2>
+          <p className={styles.locationText}>
+            Jl. Melati Indah No. 27, Kel. Sakura, Kec. Bloomville, Kota
+            Florencia 12345 🌸
           </p>
-          <button className="mt-6 bg-gray-800 text-white px-6 py-2 rounded-full hover:shadow-lg transition-shadow duration-300">Maps</button>
+          <button className={styles.locationButton}>Peta</button>
         </div>
         <Image
           src="/place.png"
-          alt="Shop Location"
+          alt="Lokasi Toko"
           width={300}
           height={200}
-          className="rounded-lg"
+          className={styles.locationImage}
         />
       </section>
+
+      {/* Bagian Dekorasi */}
+      {/* <section className={styles.decorationSection}>
+        <Image
+          src="/workshop.png"
+          alt="Dekorasi"
+          width={1200}
+          height={400}
+          className={styles.decorationImage}
+        />
+        <div className={styles.decorationText}>
+          <h2 className={styles.decorationHeading}>Dekorasi</h2>
+          <h3 className={styles.decorationSubheading}>
+            Dekorasi Elegan untuk Berbagai Acara
+          </h3>
+          <p className={styles.decorationDescription}>
+            Buat momen spesial lebih berkesan dengan dekorasi bunga untuk
+            pernikahan, acara formal, dan perayaan intim.
+          </p>
+        </div> */}
+
+
+      {/* Footer Section */}
+      <footer className={styles.footer}>
+        <div className={styles.footerContent}>
+          <h3 className={styles.footerHeading}>Mekar Bersama Kami</h3>
+          <p className={styles.footerSubheading}>Gabung dengan Tim Kami</p>
+          <div className={styles.corporateGifting}>
+            <h4 className={styles.corporateHeading}>Hadiah Perusahaan</h4>
+            <p className={styles.corporateText}>Isi formulir di bawah ini...</p>
+            <a href="#kontak" className={styles.corporateLink}>
+              Mari berkolaborasi dengan Flowerscotch
+            </a>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }
