@@ -19,7 +19,7 @@ export default function ExpensesGraph() {
         console.log('Expenses API data:', data); // debug
 
         const monthLabels = data.map((d: any) => d.month);
-        const expenseData = data.map((d: any) => Number(d.expenses) / 1000); // jika expenses dalam rupiah
+        const expenseData = data.map((d: any) => Number(d.expenses) ); // jika expenses dalam rupiah
 
         setChartOptions({
           chart: { type: 'line', height: 250, toolbar: { show: false } },
@@ -33,7 +33,7 @@ export default function ExpensesGraph() {
           },
           yaxis: {
             labels: {
-              formatter: (val: number) => `${val.toLocaleString('id-ID')}k`,
+              formatter: (val: number) => `Rp ${val.toLocaleString('id-ID')}`,
             },
           },
           tooltip: { theme: theme === 'dark' ? 'dark' : 'light' },

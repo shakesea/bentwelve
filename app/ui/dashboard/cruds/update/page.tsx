@@ -35,7 +35,7 @@ export default function UpdateProductPage() {
         const productData = await fetchProductById(id);
         setProduct(productData || {
           id,
-          name: 'Unknown Product',
+          name: '',
           category: 'Uncategorized',
           price: 0,
           image: '',
@@ -44,8 +44,8 @@ export default function UpdateProductPage() {
         console.error('Failed to load product:', error);
         setProduct({
           id,
-          name: 'Unknown Product',
-          category: 'Uncategorized',
+          name: '',
+          category: '',
           price: 0,
           image: '',
         });

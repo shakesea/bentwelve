@@ -23,7 +23,7 @@ export default function RevenueGraph() {
         console.log('Revenue API data:', data);
 
         const monthLabels = data.map((d: any) => d.month);
-        const salesData = data.map((d: any) => Number(d.sales) / 1000);
+        const salesData = data.map((d: any) => Number(d.sales) );
 
         console.log('Categories:', monthLabels);
         console.log('Series:', salesData);
@@ -60,7 +60,7 @@ export default function RevenueGraph() {
       },
       yaxis: {
         labels: {
-          formatter: (val: number) => `$${val}k`,
+          formatter: (val: number) => `Rp ${val}`,
         },
       },
       tooltip: {
