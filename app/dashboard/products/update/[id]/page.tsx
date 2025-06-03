@@ -1,220 +1,119 @@
-'use client';
+'use server';
 
-import { useState, useEffect, useTransition } from 'react';
-import { useFormState, useFormStatus } from 'react-dom';
-import { useSearchParams } from 'next/navigation';
-import { updateProduct } from '@/app/lib/actions';
+import { redirect } from 'next/navigation';
 import { fetchProductById } from '@/app/lib/data';
+import { updateProduct } from '@/app/lib/actions';
+import Link from 'next/link';
 
-// Define interfaces for type safety
-interface Product {
-  id: string;
-  name: string;
-  price: number;
-  category: string;
-  image: string;
+interface PageProps {
+  params: Promise<{ id: string }>;
 }
 
-interface FormState {
-  message: string;
-  errors: Record<string, string>;
-}
-
-// Define category options for the select dropdown
-const CATEGORY_OPTIONS = [
-  { value: '', label: 'Pilih kategori' },
-  { value: 'Rangkaian Bunga', label: 'Rangkaian Bunga' },
-  { value: 'Bunga Potong', label: 'Bunga Potong' },
-];
-
-export default function UpdateProductPage() {
-  const searchParams = useSearchParams();
-  const id = searchParams.get('id') || '';
-  const initialState: FormState = { message: '', errors: {} };
-  const [state, formAction] = useFormState(updateProduct.bind(null, id), initialState);
-  const [product, setProduct] = useState<Product | null>(null);
-  const [isPending, startTransition] = useTransition();
-
-  // Load product data when the component mounts or id changes
-  useEffect(() => {
-    if (!id) {
-      setProduct({
-        id,
-        name: '',
-        category: '',
-        price: 0,
-        image: '',
-      });
-      return;
-    }
-
-    const loadProduct = async () => {
-      try {
-        const productData = await fetchProductById(id);
-        setProduct(
-          productData || {
-            id,
-            name: '',
-            category: 'Uncategorized',
-            price: 0,
-            image: '',
-          }
-        );
-      } catch (error) {
-        console.error('Failed to load product:', error);
-        setProduct({
-          id,
-          name: '',
-          category: '',
-          price: 0,
-          image: '',
-        });
-      }
-    };
-
-    loadProduct();
-  }, [id]);
-
-  // Handle form submission with transition
-  const handleSubmit = (formData: FormData) => {
-    startTransition(() => {
-      formAction(formData);
-    });
-  };
+export default async function UpdateProductPage({ params }: PageProps) {
+  const { id } = await params;
+  const product = await fetchProductById(id);
 
   if (!product) {
     return (
-      <div className="text-center mt-20 text-pink-600">Loading product...</div>
+      <div className="min-h-screen bg-gradient-to-br from-pink-50 to-white p-6">
+        <h1 className="text-2xl font-bold text-gray-800 mb-6">Product Not Found</h1>
+        <Link
+          href="/dashboard/products"
+          className="rounded-lg bg-pink-600 px-6 py-2 text-sm font-semibold text-white shadow-md transition-all duration-300 hover:bg-pink-700 hover:shadow-lg"
+        >
+          Back to Products
+        </Link>
+      </div>
     );
   }
 
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-pink-50 px-4 py-10">
-      <form
-        action={handleSubmit}
-        className="bg-white shadow-lg rounded-2xl w-full max-w-3xl p-8 md:p-12"
-      >
-        <h2 className="text-2xl md:text-3xl font-bold text-pink-600 text-center mb-8">
-          Update Product
-        </h2>
+  async function handleUpdate(formData: FormData) {
+    'use server';
+    const result = await updateProduct(id, {}, formData);
+    if (!result.errors || Object.keys(result.errors).length === 0) {
+      redirect('/dashboard/products');
+    }
+    // Since we're in a server component, we can't directly return state for client-side rendering.
+    // Redirect to an error page or handle errors differently if needed.
+    redirect(`/dashboard/products/update/${id}?error=${encodeURIComponent(result.message)}`);
+  }
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Product Name */}
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-pink-50 to-white p-6">
+      <div className="mb-8 flex items-center justify-between">
+        <h1 className="text-2xl font-bold text-gray-800">Edit Product</h1>
+        <Link
+          href="/dashboard/products"
+          className="rounded-lg bg-gray-600 px-6 py-2 text-sm font-semibold text-white shadow-md transition-all duration-300 hover:bg-gray-700 hover:shadow-lg"
+        >
+          Back to Products
+        </Link>
+      </div>
+
+      <div className="max-w-lg mx-auto bg-white p-6 rounded-lg shadow-lg">
+        <form action={handleUpdate} className="space-y-6">
           <div>
-            <label
-              htmlFor="name"
-              className="block text-sm font-medium text-pink-700 mb-1"
-            >
+            <label htmlFor="name" className="block text-sm font-medium text-gray-700">
               Product Name
             </label>
             <input
+              type="text"
               id="name"
               name="name"
               defaultValue={product.name}
-              type="text"
-              className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-pink-400"
-              placeholder="e.g. Rose Bouquet"
-              aria-describedby="name-error"
+              className="mt-1 w-full rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-900 focus:border-pink-500 focus:ring-2 focus:ring-pink-200 transition-all duration-200"
+              placeholder="Enter product name"
               required
             />
-            {state.errors?.name && (
-              <p id="name-error" className="text-red-500 text-sm mt-1">
-                {state.errors.name}
-              </p>
-            )}
           </div>
 
-          {/* Category Select */}
           <div>
-            <label
-              htmlFor="category"
-              className="block text-sm font-medium text-pink-700 mb-1"
-            >
+            <label htmlFor="category" className="block text-sm font-medium text-gray-700">
               Category
             </label>
-            <select
+            <input
+              type="text"
               id="category"
               name="category"
               defaultValue={product.category}
-              className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-pink-400"
-              aria-describedby="category-error"
-              required
-            >
-              {CATEGORY_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-            {state.errors?.category && (
-              <p id="category-error" className="text-red-500 text-sm mt-1">
-                {state.errors.category}
-              </p>
-            )}
-          </div>
-
-          {/* Price */}
-          <div>
-            <label
-              htmlFor="price"
-              className="block text-sm font-medium text-pink-700 mb-1"
-            >
-              Price
-            </label>
-            <input
-              id="price"
-              name="price"
-              defaultValue={product.price.toString()}
-              type="number"
-              step="0.01"
-              className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-pink-400"
-              placeholder="e.g. 100000"
-              aria-describedby="price-error"
+              className="mt-1 w-full rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-900 focus:border-pink-500 focus:ring-2 focus:ring-pink-200 transition-all duration-200"
+              placeholder="Enter category"
               required
             />
-            {state.errors?.price && (
-              <p id="price-error" className="text-red-500 text-sm mt-1">
-                {state.errors.price}
-              </p>
-            )}
           </div>
-        </div>
 
-        {/* Action Buttons */}
-        <div className="mt-10 flex justify-end gap-4">
-          <button
-            type="button"
-            onClick={() => window.history.back()}
-            disabled={isPending}
-            className="px-6 py-3 border border-pink-300 text-pink-500 rounded-lg hover:bg-pink-100 transition disabled:opacity-50"
-          >
-            Cancel
-          </button>
-          <SubmitButton isPending={isPending} />
-        </div>
+          <div>
+            <label htmlFor="price" className="block text-sm font-medium text-gray-700">
+              Price (Rp)
+            </label>
+            <input
+              type="number"
+              id="price"
+              name="price"
+              defaultValue={product.price}
+              className="mt-1 w-full rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-900 focus:border-pink-500 focus:ring-2 focus:ring-pink-200 transition-all duration-200"
+              placeholder="Enter price"
+              min="1"
+              required
+            />
+          </div>
 
-        {state.message && (
-          <p className="text-green-600 text-sm mt-4 text-center">
-            {state.message}
-          </p>
-        )}
-      </form>
+          <div className="flex space-x-4">
+            <button
+              type="submit"
+              className="flex-1 rounded-lg bg-pink-600 px-6 py-2 text-sm font-semibold text-white shadow-md transition-all duration-300 hover:bg-pink-700 hover:shadow-lg"
+            >
+              Update Product
+            </button>
+            <Link
+              href="/dashboard/products"
+              className="flex-1 text-center rounded-lg bg-gray-600 px-6 py-2 text-sm font-semibold text-white shadow-md transition-all duration-300 hover:bg-gray-700 hover:shadow-lg"
+            >
+              Cancel
+            </Link>
+          </div>
+        </form>
+      </div>
     </div>
-  );
-}
-
-interface SubmitButtonProps {
-  isPending: boolean;
-}
-
-function SubmitButton({ isPending }: SubmitButtonProps) {
-  return (
-    <button
-      type="submit"
-      className="px-6 py-3 bg-pink-500 text-white rounded-lg hover:bg-pink-600 transition disabled:bg-pink-300"
-      disabled={isPending}
-    >
-      {isPending ? 'Saving...' : 'Save Changes'}
-    </button>
   );
 }
