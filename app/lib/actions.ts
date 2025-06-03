@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 import { neon } from '@neondatabase/serverless';
 import { z } from 'zod';
+import { pool } from './db';
 
 const sql = neon(process.env.DATABASE_URL!);
 
@@ -95,5 +96,45 @@ export async function deleteProduct(id: string) {
   } catch (error) {
     console.error('Failed to delete product:', error);
     throw new Error('Failed to delete product.');
+  }
+}
+
+const TransactionSchema = z.object({
+  productId: z.string().optional(), // nullable
+  buyerName: z.string().min(1, 'Buyer name is required'),
+  totalPrice: z.coerce.number().gt(0, 'Total price must be greater than 0'),
+  date: z.string().datetime({ message: 'Invalid date format (ISO expected)' }), // ISO timestamp
+  userId: z.string().optional(), // optional
+});
+
+export async function createTransaction(prevState: any, formData: FormData) {
+  const validated = TransactionSchema.safeParse({
+    productId: formData.get('productId')?.toString() || undefined,
+    buyerName: formData.get('buyerName'),
+    totalPrice: formData.get('totalPrice'),
+    date: formData.get('date'),
+    userId: formData.get('userId')?.toString() || undefined,
+  });
+
+  if (!validated.success) {
+    return {
+      errors: validated.error.flatten().fieldErrors,
+      message: 'Validation failed. Please check the form.',
+    };
+  }
+
+  const { productId, buyerName, totalPrice, date, userId } = validated.data;
+
+  try {
+    await sql`
+      INSERT INTO transactions (id_produk, nama_pembeli, total_harga, tanggal, id_user)
+      VALUES (${productId ?? null}, ${buyerName}, ${totalPrice}, ${date}, ${userId ?? null})
+    `;
+
+    revalidatePath('/dashboard/transactions');
+    redirect('/dashboard/transactions');
+  } catch (error) {
+    console.error('Failed to create transaction:', error);
+    return { message: 'Failed to create transaction.', errors: {} };
   }
 }

@@ -23,8 +23,14 @@ export default async function ReportPage({
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 to-white p-6">
       {/* Header */}
-      <div className="mb-8 flex flex-col items-start gap-4">
+      <div className="mb-8 flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-800">Transaction Reports</h1>
+        <a
+          href="/dashboard/report/create"
+          className="rounded-lg bg-pink-600 px-6 py-2 text-sm font-semibold text-white shadow-md transition-all duration-300 hover:bg-pink-700 hover:shadow-lg"
+        >
+          + Add Transaction
+        </a>
       </div>
 
       {/* Search */}
