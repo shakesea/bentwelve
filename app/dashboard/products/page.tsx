@@ -19,14 +19,14 @@ export default async function ProductsPage({ searchParams }: PageProps) {
     redirect(`/dashboard/products?search=${encodeURIComponent(searchTerm)}`);
   }
 
-  async function handleAdd() {
+  async function handleCreate() {
     'use server';
-    redirect(`/ui/dashboard/cruds/create`);
+    redirect(`/dashboard/products/create`);
   }
 
   async function handleEdit(id: string) {
     'use server';
-    redirect(`/ui/dashboard/cruds/update/?id=${encodeURIComponent(id)}`);
+  redirect(`/ui/dashboard/cruds/update/?id=${encodeURIComponent(id)}`);
   }
 
   return (
@@ -35,7 +35,7 @@ export default async function ProductsPage({ searchParams }: PageProps) {
       <div className="mb-8 flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-800">Product Catalog</h1>
         <Link
-          href="/ui/dashboard/cruds/create"
+          href="/dashboard/products/create"
           className="rounded-lg bg-pink-600 px-6 py-2 text-sm font-semibold text-white shadow-md transition-all duration-300 hover:bg-pink-700 hover:shadow-lg"
         >
           + Add New Product
@@ -70,7 +70,7 @@ export default async function ProductsPage({ searchParams }: PageProps) {
               <th className="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Product</th>
               <th className="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Category</th>
               <th className="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Price</th>
-              <th className="px-6 py-3 text-left text-xs font-bold00000 text-gray-700 uppercase tracking-wider">Actions</th>
+              <th className="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200 animate-fade-in">
