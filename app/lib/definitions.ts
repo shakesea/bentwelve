@@ -86,3 +86,8 @@ export type InvoiceForm = {
   amount: number;
   status: 'pending' | 'paid';
 };
+
+export type MonthlyExpense = {
+  month: string;
+  expenses: number;
+};

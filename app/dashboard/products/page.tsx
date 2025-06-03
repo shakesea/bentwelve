@@ -1,6 +1,7 @@
+// app/dashboard/products/page.tsx
 import Image from 'next/image';
 import { redirect } from 'next/navigation';
-import { fetchProducts } from '@/app/lib/data'; // Sesuaikan path
+import { fetchProducts } from '@/app/lib/data';
 import Link from 'next/link';
 
 interface PageProps {
@@ -29,95 +30,100 @@ export default async function ProductsPage({ searchParams }: PageProps) {
   }
 
   return (
-    <div className="mt-6">
-      {/* Search and Add button */}
-      <div className="mb-4 flex items-center justify-between">
-        <form action={search}>
-          <input
-            type="text"
-            name="search"
-            placeholder="Search product..."
-            defaultValue={searchTerm}
-            className="rounded-md border px-3 py-2 text-sm"
-          />
-        </form>
+    <div className="min-h-screen bg-gradient-to-br from-pink-50 to-white p-6">
+      {/* Header Section */}
+      <div className="mb-8 flex items-center justify-between">
+        <h1 className="text-2xl font-bold text-gray-800">Product Catalog</h1>
         <Link
           href="/ui/dashboard/cruds/create"
-          className="rounded bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+          className="rounded-lg bg-pink-600 px-6 py-2 text-sm font-semibold text-white shadow-md transition-all duration-300 hover:bg-pink-700 hover:shadow-lg"
         >
-          + Add Product
+          + Add New Product
         </Link>
       </div>
 
-      {/* Table */}
-      <div className="flow-root">
-        <div className="inline-block min-w-full align-middle">
-          <div className="rounded-lg bg-gray-50 p-2 md:pt-0">
-            <table className="min-w-full text-gray-900">
-              <thead className="rounded-lg text-left text-sm font-normal">
-                <tr>
-                  <th className="px-4 py-5 font-medium sm:pl-6">No</th>
-                  <th className="px-3 py-5 font-medium">Product</th>
-                  <th className="px-3 py-5 font-medium">Category</th>
-                  <th className="px-3 py-5 font-medium">Price</th>
-                  <th className="px-3 py-5 font-medium">Actions</th>
+      {/* Search Section */}
+      <div className="mb-6">
+        <form action={search} className="flex items-center space-x-2">
+          <input
+            type="text"
+            name="search"
+            placeholder="Search by product name..."
+            defaultValue={searchTerm}
+            className="w-full max-w-md rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-900 focus:border-pink-500 focus:ring-2 focus:ring-pink-200 transition-all duration-200"
+          />
+          <button
+            type="submit"
+            className="rounded-lg bg-pink-600 px-4 py-2 text-sm font-medium text-white shadow-md transition-all duration-300 hover:bg-pink-700 hover:shadow-lg"
+          >
+            Search
+          </button>
+        </form>
+      </div>
+
+      {/* Products Table */}
+      <div className="overflow-hidden rounded-lg bg-white shadow-lg">
+        <table className="min-w-full divide-y divide-gray-200">
+          <thead className="bg-pink-100">
+            <tr>
+              <th className="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">No</th>
+              <th className="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Product</th>
+              <th className="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Category</th>
+              <th className="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Price</th>
+              <th className="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Actions</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-200 animate-fade-in">
+            {products.length === 0 ? (
+              <tr>
+                <td colSpan={5} className="px-6 py-4 text-center text-gray-500">
+                  No products found.
+                </td>
+              </tr>
+            ) : (
+              products.map((product, idx) => (
+                <tr
+                  key={product.id}
+                  className="hover:bg-gray-50 transition-colors duration-200"
+                >
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                    {String(idx + 1).padStart(2, '0')}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="flex items-center space-x-3">
+                      <Image
+                        src={product.image || '/placeholder.png'}
+                        alt={product.name}
+                        width={40}
+                        height={40}
+                        className="rounded-full object-cover border border-gray-200"
+                      />
+                      <span className="text-sm font-medium text-gray-900">
+                        {product.name}
+                      </span>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                    {product.category}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                    Rp {product.price.toLocaleString('id-ID')}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                    <form action={handleEdit.bind(null, product.id)} className="inline-block">
+                      <button
+                        type="submit"
+                        className="text-emerald-600 hover:text-emerald-800 font-medium transition-colors duration-200"
+                      >
+                        ✏️ Edit
+                      </button>
+                    </form>
+                  </td>
                 </tr>
-              </thead>
-              <tbody className="bg-white">
-                {products.length === 0 ? (
-                  <tr>
-                    <td colSpan={5} className="px-6 py-4 text-center text-gray-500">
-                      No products found.
-                    </td>
-                  </tr>
-                ) : (
-                  products.map((product, idx) => (
-                    <tr
-                      key={product.id}
-                      className="w-full border-b py-3 text-sm last-of-type:border-none 
-                        [&:first-child>td:first-child]:rounded-tl-lg 
-                        [&:first-child>td:last-child]:rounded-tr-lg 
-                        [&:last-child>td:first-child]:rounded-bl-lg 
-                        [&:last-child>td:last-child]:rounded-br-lg"
-                    >
-                      <td className="whitespace-nowrap py-3 pl-6 pr-3">
-                        {String(idx + 1).padStart(2, '0')}
-                      </td>
-                      <td className="whitespace-nowrap px-3 py-3">
-                        <div className="flex items-center gap-3">
-                          <Image
-                            src={product.image}
-                            alt={product.name}
-                            width={40}
-                            height={40}
-                            className="w-10 h-10 rounded object-cover"
-                          />
-                          <p>{product.name}</p>
-                        </div>
-                      </td>
-                      <td className="whitespace-nowrap px-3 py-3">{product.category}</td>
-                      <td className="whitespace-nowrap px-3 py-3">
-                        Rp {product.price.toLocaleString('id-ID')}
-                      </td>
-                      <td className="whitespace-nowrap px-3 py-3">
-                        <div className="flex gap-2">
-                          <form action={handleEdit.bind(null, product.id)}>
-                            <button
-                              type="submit"
-                              className="text-blue-600 hover:text-blue-800"
-                            >
-                              ✏️ Edit
-                            </button>
-                          </form>
-                        </div>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
+              ))
+            )}
+          </tbody>
+        </table>
       </div>
     </div>
   );

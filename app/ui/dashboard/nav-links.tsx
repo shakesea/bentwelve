@@ -14,7 +14,7 @@ import { inter } from '@/app/ui/fonts';
 import ProfileSummary from './profile';
 
 const links = [
-  { name: 'Home', href: '/dashboard', icon: HomeIcon },
+  { name: 'Home', href: '/dashboard2', icon: HomeIcon },
   { name: 'Products', href: '/dashboard/products', icon: Squares2X2Icon },
   { name: 'Reports', href: '/dashboard/report', icon: DocumentTextIcon },
 ];

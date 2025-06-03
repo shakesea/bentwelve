@@ -1,8 +1,9 @@
 'use client';
 import dynamic from 'next/dynamic';
-const Chart = dynamic(() => import('react-apexcharts'), { ssr: false });
 import { useTheme } from 'next-themes';
 import { useEffect, useState } from 'react';
+
+const Chart = dynamic(() => import('react-apexcharts'), { ssr: false });
 
 export default function SalesGraph() {
   const { theme } = useTheme();
@@ -10,22 +11,41 @@ export default function SalesGraph() {
   const [series, setSeries] = useState<any[]>([]);
 
   useEffect(() => {
-    setChartOptions({
-      chart: { type: 'line', height: 250, toolbar: { show: false } },
-      colors: ['#10B981'],
-      stroke: { curve: 'smooth', width: 2 },
-      dataLabels: { enabled: false },
-      grid: { borderColor: '#e0e0e0' },
-      xaxis: {
-        categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-        axisBorder: { show: false },
-      },
-      yaxis: { labels: { formatter: (val: number) => `${val}` } },
-      tooltip: { theme: theme === 'dark' ? 'dark' : 'light' },
-    });
-    setSeries([
-      { name: 'Sales', data: [50, 70, 40, 80, 60, 90] },
-    ]);
+    async function fetchData() {
+      try {
+        const res = await fetch('/api/monthly-metrics');
+        const data = await res.json();
+
+        console.log('Sales API data:', data); // debug
+
+        const monthLabels = data.map((d: any) => d.month);
+        const salesData = data.map((d: any) => Number(d.sales));
+
+        setChartOptions({
+          chart: { type: 'line', height: 250, toolbar: { show: false } },
+          colors: ['#10B981'],
+          stroke: { curve: 'smooth', width: 2 },
+          dataLabels: { enabled: false },
+          grid: { borderColor: '#e0e0e0' },
+          xaxis: {
+            categories: monthLabels,
+            axisBorder: { show: false },
+          },
+          yaxis: {
+            labels: {
+              formatter: (val: number) => `${val.toLocaleString('id-ID')}`,
+            },
+          },
+          tooltip: { theme: theme === 'dark' ? 'dark' : 'light' },
+        });
+
+        setSeries([{ name: 'Sales', data: salesData }]);
+      } catch (error) {
+        console.error('Error loading sales data:', error);
+      }
+    }
+
+    fetchData();
   }, [theme]);
 
   return (

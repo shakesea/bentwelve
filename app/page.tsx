@@ -15,7 +15,7 @@ export default function LoginPage() {
     e.preventDefault();
 
     if (username === 'admin123' && password === '12345') {
-      router.push('/dashboard');
+      router.push('/dashboard2');
     } else if (username === 'user123' && password === '12345') {
       router.push('/customers/home');
     } else {
