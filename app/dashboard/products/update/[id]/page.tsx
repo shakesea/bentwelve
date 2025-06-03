@@ -2,10 +2,11 @@
 
 import { useState, useEffect, useTransition } from 'react';
 import { useFormState, useFormStatus } from 'react-dom';
-import { updateProduct } from '@/app/lib/actions';
 import { useSearchParams } from 'next/navigation';
+import { updateProduct } from '@/app/lib/actions';
 import { fetchProductById } from '@/app/lib/data';
 
+// Define interfaces for type safety
 interface Product {
   id: string;
   name: string;
@@ -16,8 +17,15 @@ interface Product {
 
 interface FormState {
   message: string;
-  errors: { [key: string]: string };
+  errors: Record<string, string>;
 }
+
+// Define category options for the select dropdown
+const CATEGORY_OPTIONS = [
+  { value: '', label: 'Pilih kategori' },
+  { value: 'Rangkaian Bunga', label: 'Rangkaian Bunga' },
+  { value: 'Bunga Potong', label: 'Bunga Potong' },
+];
 
 export default function UpdateProductPage() {
   const searchParams = useSearchParams();
@@ -27,19 +35,31 @@ export default function UpdateProductPage() {
   const [product, setProduct] = useState<Product | null>(null);
   const [isPending, startTransition] = useTransition();
 
+  // Load product data when the component mounts or id changes
   useEffect(() => {
-    if (!id) return;
+    if (!id) {
+      setProduct({
+        id,
+        name: '',
+        category: '',
+        price: 0,
+        image: '',
+      });
+      return;
+    }
 
     const loadProduct = async () => {
       try {
         const productData = await fetchProductById(id);
-        setProduct(productData || {
-          id,
-          name: '',
-          category: 'Uncategorized',
-          price: 0,
-          image: '',
-        });
+        setProduct(
+          productData || {
+            id,
+            name: '',
+            category: 'Uncategorized',
+            price: 0,
+            image: '',
+          }
+        );
       } catch (error) {
         console.error('Failed to load product:', error);
         setProduct({
@@ -51,16 +71,22 @@ export default function UpdateProductPage() {
         });
       }
     };
+
     loadProduct();
   }, [id]);
 
+  // Handle form submission with transition
   const handleSubmit = (formData: FormData) => {
     startTransition(() => {
       formAction(formData);
     });
   };
 
-  if (!product) return <div className="text-center mt-20 text-pink-600">Loading product...</div>;
+  if (!product) {
+    return (
+      <div className="text-center mt-20 text-pink-600">Loading product...</div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-pink-50 px-4 py-10">
@@ -75,8 +101,14 @@ export default function UpdateProductPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Product Name */}
           <div>
-            <label className="block text-sm font-medium text-pink-700 mb-1">Product Name</label>
+            <label
+              htmlFor="name"
+              className="block text-sm font-medium text-pink-700 mb-1"
+            >
+              Product Name
+            </label>
             <input
+              id="name"
               name="name"
               defaultValue={product.name}
               type="text"
@@ -86,33 +118,51 @@ export default function UpdateProductPage() {
               required
             />
             {state.errors?.name && (
-              <p id="name-error" className="text-red-500 text-sm mt-1">{state.errors.name}</p>
+              <p id="name-error" className="text-red-500 text-sm mt-1">
+                {state.errors.name}
+              </p>
             )}
           </div>
 
           {/* Category Select */}
           <div>
-            <label className="block text-sm font-medium text-pink-700 mb-1">Category</label>
+            <label
+              htmlFor="category"
+              className="block text-sm font-medium text-pink-700 mb-1"
+            >
+              Category
+            </label>
             <select
+              id="category"
               name="category"
               defaultValue={product.category}
               className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-pink-400"
               aria-describedby="category-error"
               required
             >
-              <option value="">Pilih kategori</option>
-              <option value="Rangkaian Bunga">Rangkaian Bunga</option>
-              <option value="Bunga Potong">Bunga Potong</option>
+              {CATEGORY_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
             </select>
             {state.errors?.category && (
-              <p id="category-error" className="text-red-500 text-sm mt-1">{state.errors.category}</p>
+              <p id="category-error" className="text-red-500 text-sm mt-1">
+                {state.errors.category}
+              </p>
             )}
           </div>
 
           {/* Price */}
           <div>
-            <label className="block text-sm font-medium text-pink-700 mb-1">Price</label>
+            <label
+              htmlFor="price"
+              className="block text-sm font-medium text-pink-700 mb-1"
+            >
+              Price
+            </label>
             <input
+              id="price"
               name="price"
               defaultValue={product.price.toString()}
               type="number"
@@ -123,7 +173,9 @@ export default function UpdateProductPage() {
               required
             />
             {state.errors?.price && (
-              <p id="price-error" className="text-red-500 text-sm mt-1">{state.errors.price}</p>
+              <p id="price-error" className="text-red-500 text-sm mt-1">
+                {state.errors.price}
+              </p>
             )}
           </div>
         </div>
@@ -138,26 +190,31 @@ export default function UpdateProductPage() {
           >
             Cancel
           </button>
-          <SubmitButton />
+          <SubmitButton isPending={isPending} />
         </div>
 
         {state.message && (
-          <p className="text-green-600 text-sm mt-4 text-center">{state.message}</p>
+          <p className="text-green-600 text-sm mt-4 text-center">
+            {state.message}
+          </p>
         )}
       </form>
     </div>
   );
 }
 
-function SubmitButton() {
-  const { pending } = useFormStatus();
+interface SubmitButtonProps {
+  isPending: boolean;
+}
+
+function SubmitButton({ isPending }: SubmitButtonProps) {
   return (
     <button
       type="submit"
       className="px-6 py-3 bg-pink-500 text-white rounded-lg hover:bg-pink-600 transition disabled:bg-pink-300"
-      disabled={pending}
+      disabled={isPending}
     >
-      {pending ? 'Saving...' : 'Save Changes'}
+      {isPending ? 'Saving...' : 'Save Changes'}
     </button>
   );
 }

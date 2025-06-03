@@ -1,4 +1,3 @@
-// app/lib/actions.ts
 'use server';
 
 import { redirect } from 'next/navigation';
@@ -83,5 +82,18 @@ export async function updateProduct(id: string, prevState: any, formData: FormDa
   } catch (error) {
     console.error('Failed to update product:', error);
     return { message: 'Failed to update product.', errors: {} };
+  }
+}
+
+export async function deleteProduct(id: string) {
+  try {
+    await sql`
+      DELETE FROM public.products
+      WHERE id_produk = ${id}
+    `;
+    revalidatePath('/dashboard/products');
+  } catch (error) {
+    console.error('Failed to delete product:', error);
+    throw new Error('Failed to delete product.');
   }
 }

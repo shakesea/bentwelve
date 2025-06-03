@@ -1,4 +1,5 @@
-// app/dashboard/products/page.tsx
+'use server';
+
 import Image from 'next/image';
 import { redirect } from 'next/navigation';
 import { fetchProducts } from '@/app/lib/data';
@@ -26,7 +27,12 @@ export default async function ProductsPage({ searchParams }: PageProps) {
 
   async function handleEdit(id: string) {
     'use server';
-  redirect(`/ui/dashboard/cruds/update/?id=${encodeURIComponent(id)}`);
+    redirect(`/dashboard/products/update/${encodeURIComponent(id)}`);
+  }
+
+  async function handleDelete(id: string) {
+    'use server';
+    redirect(`/dashboard/products/delete/${encodeURIComponent(id)}`);
   }
 
   return (
@@ -110,14 +116,24 @@ export default async function ProductsPage({ searchParams }: PageProps) {
                     Rp {product.price.toLocaleString('id-ID')}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                    <form action={handleEdit.bind(null, product.id)} className="inline-block">
-                      <button
-                        type="submit"
-                        className="text-emerald-600 hover:text-emerald-800 font-medium transition-colors duration-200"
-                      >
-                        ✏️ Edit
-                      </button>
-                    </form>
+                    <div className="flex space-x-4">
+                      <form action={handleEdit.bind(null, product.id)} className="inline-block">
+                        <button
+                          type="submit"
+                          className="text-emerald-600 hover:text-emerald-800 font-medium transition-colors duration-200"
+                        >
+                          ✏️ Edit
+                        </button>
+                      </form>
+                      <form action={handleDelete.bind(null, product.id)} className="inline-block">
+                        <button
+                          type="submit"
+                          className="text-red-600 hover:text-red-800 font-medium transition-colors duration-200"
+                        >
+                          🗑️ Delete
+                        </button>
+                      </form>
+                    </div>
                   </td>
                 </tr>
               ))
