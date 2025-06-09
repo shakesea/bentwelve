@@ -1,3 +1,4 @@
+// app/customers/flowers/detail/[id]/page.tsx
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -18,32 +19,51 @@ export default function FlowerDetailPage() {
   const [variant, setVariant] = useState("Round Arrangement");
   const [customRequest, setCustomRequest] = useState("");
   const [quantity, setQuantity] = useState(1);
+  const [error, setError] = useState<string | null>(null);
   const router = useRouter();
   const params = useParams();
-  const { id } = params; // Mengambil id_produk dari URL
+  const { id } = params as { id?: string }; // Ketik eksplisit untuk id
 
   useEffect(() => {
-    if (id) {
-      const fetchProduct = async () => {
-        try {
-          const response = await fetch(`/api/products/detail/${id}`);
-          const data = await response.json();
-          if (response.ok) {
-            setProduct(data);
-          } else {
-            console.error("Gagal mengambil produk:", data.error);
-          }
-        } catch (error) {
-          console.error("Kesalahan saat mengambil produk:", error);
-        }
-      };
-
-      fetchProduct();
+    if (!id) {
+      setError("ID produk tidak ditemukan.");
+      return;
     }
+
+    const fetchProduct = async () => {
+      try {
+        const response = await fetch(`/api/products/detail/${id}`);
+        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(data.error || "Gagal mengambil produk");
+        }
+        setProduct(data);
+        setError(null); // Reset error jika sukses
+      } catch (error) {
+        console.error("Kesalahan saat mengambil produk:", error);
+        setError((error as Error).message || "Terjadi kesalahan.");
+      }
+    };
+
+    fetchProduct();
   }, [id]);
 
+  if (error) {
+    return (
+      <div className="p-6 text-center text-red-600">
+        <p>{error}</p>
+        <button
+          onClick={() => router.push("/customers/flowers")}
+          className="mt-4 bg-pink-100 text-pink-600 px-4 py-2 rounded-md hover:bg-pink-200"
+        >
+          Kembali ke Daftar Bunga
+        </button>
+      </div>
+    );
+  }
+
   if (!product) {
-    return <div>Memuat...</div>;
+    return <div className="p-6 text-center">Memuat...</div>;
   }
 
   return (
@@ -68,15 +88,13 @@ export default function FlowerDetailPage() {
 
         <div className="flex-1 space-y-6">
           <h1 className="text-4xl font-bold text-gray-900">{product.title}</h1>
-          <h2 className="text-xl text-gray-700 font-semibold">
-            {product.category}
-          </h2>
-          <p className="text-lg text-pink-600 font-bold">Rp {product.price}</p>
+          <h2 className="text-xl text-gray-700 font-semibold">{product.category}</h2>
+          <p className="text-lg text-pink-600 font-bold">
+            Rp {product.price?.toLocaleString("id-ID") || "Harga tidak tersedia"}
+          </p>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Varian
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Varian</label>
             <select
               value={variant}
               onChange={(e) => setVariant(e.target.value)}
@@ -88,9 +106,7 @@ export default function FlowerDetailPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Permintaan Kustomisasi
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Permintaan Kustomisasi</label>
             <input
               type="text"
               value={customRequest}

@@ -2,11 +2,11 @@
 
 import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
-import { neon } from '@neondatabase/serverless';
+import postgres from 'postgres';
 import { z } from 'zod';
 import { pool } from './db';
 
-const sql = neon(process.env.DATABASE_URL!);
+const sql = postgres(process.env.DATABASE_URL!);
 
 // Schema for validating form data (for create and update)
 const FormSchema = z.object({

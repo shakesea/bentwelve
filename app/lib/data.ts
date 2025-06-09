@@ -1,4 +1,4 @@
-import { neon } from '@neondatabase/serverless';
+import postgres from 'postgres';
 
 // Interface untuk products
 export interface Product {
@@ -10,23 +10,23 @@ export interface Product {
 }
 
 // Interface untuk monthly revenue
-type MonthlyRevenue = {
+export interface MonthlyRevenue {
   month: string;
   revenue: number;
-};
+}
 
 // Interface untuk monthly expenses
 export interface MonthlyExpense {
   month: string;
   expenses: number;
-};
+}
 
 // Interface untuk most sold product
 export interface MostSoldProduct {
   id_produk: string;
   nama_produk: string;
   total_sold: number;
-};
+}
 
 // Interface untuk invoices
 export interface Invoice {
@@ -37,7 +37,7 @@ export interface Invoice {
   date: string;
   status: 'paid' | 'pending' | 'overdue';
   image_url: string;
-};
+}
 
 export interface Transaction {
   id_transaksi: string;
@@ -45,70 +45,56 @@ export interface Transaction {
   nama_pembeli: string;
   tanggal: string;
   total_harga: number;
-  status?: string; // Optional karena tidak semua query mengandung status
+  status?: string;
 }
 
 // Inisialisasi koneksi database
-function getDatabase() {
-  if (!process.env.DATABASE_URL) {
-    throw new Error('DATABASE_URL environment variable is not set');
-  }
-  return neon(process.env.DATABASE_URL);
-}
+const sql = postgres(process.env.DATABASE_URL!, { ssl: { rejectUnauthorized: false } });
 
-export async function fetchProducts(searchTerm: string = ''): Promise<Product[]> {
-  const sql = getDatabase();
+export async function fetchProducts(searchTerm: string = '') {
   try {
-    const products = await sql`
+    return await sql`
       SELECT id_produk as id, nama_produk as name, harga as price, kategori as category, gambar as image
       FROM public.products
       WHERE kategori IN ('Bunga Potong', 'Rangkaian Bunga')
         AND nama_produk ILIKE ${'%' + searchTerm + '%'}
       ORDER BY created_at DESC
-    ` as Product[];
-    return products;
+    `;
   } catch (error) {
     console.error('Error fetching products:', error);
     throw new Error('Failed to fetch products.');
   }
 }
 
-// Fetch total number of users
-export async function fetchTotalUsers(): Promise<number> {
-  const sql = getDatabase();
+export async function fetchTotalUsers() {
   try {
-    const result = await sql`
+    const data = await sql`
       SELECT COUNT(*) as total
       FROM public.users
     `;
-    return Number(result[0].total) || 0;
+    return Number(data[0].total) || 0;
   } catch (error) {
     console.error('Error fetching total users:', error);
     throw new Error('Failed to fetch total users.');
   }
 }
 
-// Fetch transactions
-export async function fetchTransactions(): Promise<Transaction[]> {
-  const sql = getDatabase();
+export async function fetchTransactions() {
   try {
-    const transactions = await sql`
+    return await sql`
       SELECT id_transaksi, id_produk, nama_pembeli, tanggal, total_harga
       FROM public.transactions
       ORDER BY tanggal DESC
-    ` as Transaction[];
-    return transactions;
+    `;
   } catch (error) {
     console.error('Error fetching transactions:', error);
     throw new Error('Failed to fetch transactions.');
   }
 }
 
-// Fetch monthly revenue
-export async function fetchMonthlyRevenue(): Promise<MonthlyRevenue[]> {
-  const sql = getDatabase();
+export async function fetchMonthlyRevenue() {
   try {
-    const result = await sql`
+    return await sql`
       WITH sales AS (
         SELECT
           TO_CHAR(tanggal, 'YYYY-MM') AS month,
@@ -130,104 +116,86 @@ export async function fetchMonthlyRevenue(): Promise<MonthlyRevenue[]> {
         COALESCE(sales.total_sales, 0) - COALESCE(expenses.total_expenses, 0) AS revenue
       FROM sales
       FULL OUTER JOIN expenses ON sales.month = expenses.month
-      ORDER BY month;
+      ORDER BY month
     `;
-    return result as MonthlyRevenue[];
   } catch (error) {
     console.error('Error fetching monthly revenue:', error);
     throw new Error('Failed to fetch monthly revenue.');
   }
 }
 
-// Fetch most sold product
-export async function fetchMostSoldProduct(): Promise<MostSoldProduct | null> {
-  const sql = getDatabase();
+export async function fetchMostSoldProduct() {
   try {
-    const result = await sql`
+    const data = await sql`
       SELECT t.id_produk, p.nama_produk, COUNT(t.id_produk) as total_sold
       FROM public.transactions t
       JOIN public.products p ON t.id_produk = p.id_produk
       GROUP BY t.id_produk, p.nama_produk
       ORDER BY total_sold DESC
       LIMIT 1
-    ` as MostSoldProduct[];
-    return result[0] || null;
+    `;
+    return data[0] || null;
   } catch (error) {
     console.error('Error fetching most sold product:', error);
     throw new Error('Failed to fetch most sold product.');
   }
 }
 
-// Fetch filtered invoices with pagination
-export async function fetchFilteredInvoices(
-  query: string = '',
-  currentPage: number = 1
-): Promise<Invoice[]> {
-  const sql = getDatabase();
+export async function fetchFilteredInvoices(query: string = '', currentPage: number = 1) {
   const PAGE_SIZE = 10;
   const offset = (currentPage - 1) * PAGE_SIZE;
 
   try {
-    const invoices = await sql`
+    return await sql`
       SELECT id, customer_id as name, email, amount, date, status, image_url
       FROM public.invoices
       WHERE customer_id ILIKE ${'%' + query + '%'}
       ORDER BY date DESC
       LIMIT ${PAGE_SIZE}
       OFFSET ${offset}
-    ` as Invoice[];
-    return invoices;
+    `;
   } catch (error) {
     console.error('Error fetching invoices:', error);
     throw new Error('Failed to fetch invoices.');
   }
 }
 
-// Fetch filtered transactions with pagination
-export async function fetchFilteredTransactions(
-  query: string = '',
-  currentPage: number = 1
-): Promise<Transaction[]> {
-  const sql = getDatabase();
+export async function fetchFilteredTransactions(query: string = '', currentPage: number = 1) {
   const PAGE_SIZE = 10;
   const offset = (currentPage - 1) * PAGE_SIZE;
 
   try {
-    const transactions = await sql`
+    return await sql`
       SELECT id_transaksi, id_produk, nama_pembeli, tanggal, total_harga
       FROM public.transactions
       WHERE nama_pembeli ILIKE ${'%' + query + '%'}
       ORDER BY tanggal DESC
       LIMIT ${PAGE_SIZE}
       OFFSET ${offset}
-    ` as Transaction[];
-    return transactions;
+    `;
   } catch (error) {
     console.error('Error fetching filtered transactions:', error);
     throw new Error('Failed to fetch filtered transactions.');
   }
 }
 
-// Count total filtered transactions (for pagination)
-export async function fetchTransactionCount(query: string = ''): Promise<number> {
-  const sql = getDatabase();
+export async function fetchTransactionCount(query: string = '') {
   try {
-    const result = await sql`
+    const data = await sql`
       SELECT COUNT(*) as total
       FROM public.transactions
       WHERE nama_pembeli ILIKE ${'%' + query + '%'}
     `;
-    return Number(result[0].total) || 0;
+    return Number(data[0].total) || 0;
   } catch (error) {
     console.error('Error fetching transaction count:', error);
     throw new Error('Failed to fetch transaction count.');
   }
 }
 
-export async function fetchMonthlyExpenses(): Promise<MonthlyExpense[]> {
-  const sql = getDatabase();
+export async function fetchMonthlyExpenses() {
   try {
-    const result = await sql`
+    return await sql`
       SELECT
         TO_CHAR(tanggal, 'YYYY-MM') AS month,
         SUM(jumlah_pengeluaran) AS expenses
@@ -236,7 +204,6 @@ export async function fetchMonthlyExpenses(): Promise<MonthlyExpense[]> {
       GROUP BY TO_CHAR(tanggal, 'YYYY-MM')
       ORDER BY TO_CHAR(tanggal, 'YYYY-MM')
     `;
-    return result as MonthlyExpense[];
   } catch (error) {
     console.error('Error fetching monthly expenses:', error);
     throw new Error('Failed to fetch monthly expenses.');
@@ -248,10 +215,9 @@ export interface MonthlySales {
   sales: number;
 }
 
-export async function fetchMonthlySales(): Promise<MonthlySales[]> {
-  const sql = getDatabase();
+export async function fetchMonthlySales() {
   try {
-    const result = await sql`
+    return await sql`
       SELECT
         TO_CHAR(tanggal, 'Mon') AS month,
         SUM(total_harga) AS sales
@@ -259,24 +225,14 @@ export async function fetchMonthlySales(): Promise<MonthlySales[]> {
       GROUP BY TO_CHAR(tanggal, 'Mon'), EXTRACT(MONTH FROM tanggal)
       ORDER BY EXTRACT(MONTH FROM tanggal)
     `;
-    return result as MonthlySales[];
   } catch (error) {
     console.error('Error fetching monthly sales:', error);
     throw new Error('Failed to fetch monthly sales.');
   }
 }
 
-export async function fetchCardData(): Promise<{
-  totalProducts: number;
-  totalUsers: number;
-  totalProfit: number;
-  productChange: number;
-  userChange: number;
-  profitChange: number;
-}> {
-  const sql = getDatabase();
+export async function fetchCardData() {
   try {
-    // Data saat ini (hanya produk yang relevan untuk toko bunga)
     const [productsResult, usersResult, revenueResult] = await Promise.all([
       sql`
         SELECT COUNT(*) as total
@@ -303,21 +259,14 @@ export async function fetchCardData(): Promise<{
           COALESCE(sales.total_sales, 0) AS total_sales,
           COALESCE(expenses.total_expenses, 0) AS total_expenses,
           COALESCE(sales.total_sales, 0) - COALESCE(expenses.total_expenses, 0) AS revenue
-        FROM sales, expenses;
+        FROM sales, expenses
       `,
     ]);
-
-    console.log('Debug - totalProducts:', productsResult[0].total);
-    console.log('Debug - totalUsers:', usersResult[0].total);
-    console.log('Debug - totalProfit:', revenueResult[0].revenue);
-    console.log('Debug - Sales:', revenueResult[0].total_sales);
-    console.log('Debug - Expenses:', revenueResult[0].total_expenses);
 
     const totalProducts = Number(productsResult[0].total) || 0;
     const totalUsers = Number(usersResult[0].total) || 0;
     const totalProfit = Number(revenueResult[0].revenue) || 0;
 
-    // Data historis (hingga 31 Mei 2025 dari tabel historis)
     const [prevProductsResult, prevUsersResult, prevRevenueResult] = await Promise.all([
       sql`
         SELECT COUNT(*) as total
@@ -341,11 +290,9 @@ export async function fetchCardData(): Promise<{
           COALESCE(sales.total_sales, 0) AS total_sales,
           COALESCE(expenses.total_expenses, 0) AS total_expenses,
           COALESCE(sales.total_sales, 0) - COALESCE(expenses.total_expenses, 0) AS revenue
-        FROM sales, expenses;
+        FROM sales, expenses
       `,
     ]);
-
-    console.log('Debug - prevProfit:', prevRevenueResult[0].revenue);
 
     const prevProducts = Number(prevProductsResult[0].total) || 0;
     const prevUsers = Number(prevUsersResult[0].total) || 0;
@@ -369,82 +316,63 @@ export async function fetchCardData(): Promise<{
   }
 }
 
-// Add to app/lib/data.ts
 export interface BestSellingProduct {
   name: string;
   sales: number;
   price: number;
 }
 
-export async function fetchBestSellingProducts(): Promise<BestSellingProduct[]> {
-  const sql = getDatabase();
-  try {
-    const result = await sql`
-      SELECT 
-        p.nama_produk AS name,
-        COUNT(t.id_transaksi) AS sales,
-        p.harga AS price
-      FROM public.transactions t
-      JOIN public.products p ON t.id_produk = p.id_produk
-      WHERE t.status = 'Confirmed'
-      GROUP BY p.id_produk, p.nama_produk, p.harga
-      ORDER BY sales DESC
-      LIMIT 5
-    `;
-    return result as BestSellingProduct[];
-  } catch (error) {
-    console.error('Error fetching best-selling products:', error);
-    throw new Error('Failed to fetch best-selling products.');
-  }
-}
+export async function fetchBestSellingProducts() {
+  return await sql`
+    SELECT 
+      p.nama_produk AS name,
+      COUNT(t.id_transaksi) AS sales,
+      p.harga AS price
+    FROM public.transactions t
+    JOIN public.products p ON t.id_produk = p.id_produk
+    WHERE t.status = 'Confirmed'
+    GROUP BY p.id_produk, p.nama_produk, p.harga
+    ORDER BY sales DESC
+    LIMIT 5
+  `;
+} 
 
-// In app/lib/data.ts
-export interface UpcomingTransaction {
-  title: string;
+export interface LatestTransaction {
+  title: string; // id_transaksi
   date: string;
   status: string;
-  nama_pembeli: string;
-  total_harga: string;
+  total_harga: number;
 }
 
-export async function fetchUpcomingTransactions(): Promise<UpcomingTransaction | null> {
-  const sql = getDatabase();
+export async function fetchLatestTransactions(): Promise<LatestTransaction[]> {
   try {
-    const result = await sql`
+    const result = await sql<LatestTransaction[]>`
       SELECT 
-        p.nama_produk AS title,
-        TO_CHAR(t.tanggal, 'Mon DD, YYYY') AS date,
-        t.status,
-        t.nama_pembeli,
-        t.total_harga
-      FROM public.transactions t
-      JOIN public.products p ON t.id_produk = p.id_produk
-      WHERE t.status IN ('Pending', 'Processing')
-        AND t.tanggal >= NOW()
-      ORDER BY t.tanggal DESC
-      LIMIT 1
+        nama_pembeli AS title, 
+        tanggal AS date, 
+        status, 
+        total_harga
+      FROM public.transactions
+      ORDER BY tanggal DESC
+      LIMIT 3
     `;
-    return (result[0] as UpcomingTransaction) || null;
+    return result;
   } catch (error) {
-    console.error('Error fetching upcoming transaction:', error);
-    throw new Error('Failed to fetch upcoming transaction.');
+    console.error('Error fetching latest transactions:', error);
+    throw new Error('Failed to fetch latest transactions.');
   }
 }
-
-export async function fetchProductById(id: string): Promise<Product | null> {
-  const sql = getDatabase();
+export async function fetchProductById(id: string) {
   try {
-    const result = await sql`
+    const data = await sql`
       SELECT id_produk as id, nama_produk as name, harga as price, kategori as category, gambar as image
       FROM public.products
       WHERE id_produk = ${id}
       LIMIT 1
     `;
-
-    if (result.length === 0) return null;
-    return result[0] as Product;
+    return data[0] || null;
   } catch (error) {
     console.error('Error fetching product by ID:', error);
-    return null;
+    throw new Error('Failed to fetch product by ID.');
   }
 }

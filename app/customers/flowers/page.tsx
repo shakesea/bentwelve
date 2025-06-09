@@ -28,6 +28,7 @@ export default function FlowersPage() {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [quantity, setQuantity] = useState(1);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -47,11 +48,13 @@ export default function FlowersPage() {
             count,
           }));
           setCategories(categoryList);
+          setError(null);
         } else {
-          console.error("Gagal mengambil produk:", data.error);
+          throw new Error(data.error || "Gagal mengambil produk");
         }
       } catch (error) {
         console.error("Kesalahan saat mengambil produk:", error);
+        setError((error as Error).message || "Terjadi kesalahan saat memuat produk.");
       }
     };
 
@@ -64,36 +67,63 @@ export default function FlowersPage() {
   };
 
   const closeModal = () => setSelectedProduct(null);
-  const increaseQty = () => setQuantity(qty => qty + 1);
-  const decreaseQty = () => setQuantity(qty => (qty > 1 ? qty - 1 : 1));
+  const increaseQty = () => setQuantity((qty) => qty + 1);
+  const decreaseQty = () => setQuantity((qty) => (qty > 1 ? qty - 1 : 1));
 
-  // Menggunakan id_produk untuk rute dinamis
   const getStaticPathFromSlug = (id_produk: string) => {
     return `/customers/flowers/detail/${id_produk}`;
   };
 
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-pink-100 to-white">
+        <div className="p-6 text-center text-red-600 bg-white/80 backdrop-blur-md rounded-xl shadow-lg">
+          <p className="text-xl font-semibold">{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="mt-4 bg-pink-500 text-white px-6 py-2 rounded-full hover:bg-pink-600 transition duration-300"
+          >
+            Coba Lagi
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="p-4 md:p-10">
-      <h1 className="romanesca text-3xl font-bold text-center mb-8">Pilih Bunga Anda</h1>
-      <div className="flex gap-6">
-        <aside className="w-64 bg-pink-50 p-4 rounded-xl">
-          <div className="mb-4">
-            <label className="block text-sm font-medium mb-2">Urutkan berdasarkan:</label>
-            <select className="w-full p-2 border rounded-md">
+    <div className="min-h-screen bg-gradient-to-br from-pink-50 to-white p-4 md:p-10">
+      <h1 className="romanesca text-4xl md:text-5xl font-bold text-center text-pink-800 mb-10 animate-fade-in">
+        Pilih Bunga Anda
+      </h1>
+      <div className="flex flex-col md:flex-row gap-6">
+        <aside className="w-full md:w-64 bg-white/90 backdrop-blur-md p-6 rounded-xl shadow-lg">
+          <div className="mb-6">
+            <label className="block text-sm font-medium text-gray-700 mb-2">Urutkan berdasarkan:</label>
+            <select className="w-full p-2 border border-pink-200 rounded-lg bg-white focus:ring-2 focus:ring-pink-400 transition">
               <option>Terbaru</option>
               <option>Harga: Rendah ke Tinggi</option>
               <option>Harga: Tinggi ke Rendah</option>
             </select>
           </div>
-          <div className="mb-4">
-            <input type="text" placeholder="Cari..." className="w-full p-2 border rounded-md" />
+          <div className="mb-6">
+            <input
+              type="text"
+              placeholder="Cari..."
+              className="w-full p-2 border border-pink-200 rounded-lg bg-white focus:ring-2 focus:ring-pink-400 transition"
+            />
           </div>
           <div>
-            <h2 className="font-semibold mb-2">Kategori</h2>
-            <div className="space-y-2">
+            <h2 className="text-lg font-semibold text-pink-700 mb-4 flex items-center">
+              <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"/>
+              </svg>
+              Kategori
+            </h2>
+            <div className="space-y-3">
               {categories.map((category, index) => (
-                <label key={index} className="flex items-center gap-2">
-                  <input type="checkbox" /> {category.name} ({category.count})
+                <label key={index} className="flex items-center gap-2 text-gray-700 hover:text-pink-600 transition">
+                  <input type="checkbox" className="accent-pink-500" /> 
+                  {category.name} ({category.count})
                 </label>
               ))}
             </div>
@@ -103,31 +133,34 @@ export default function FlowersPage() {
         <div className="flex-1 p-4 md:p-10 pt-0">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full mt-8">
             {products.map((product, index) => (
-              <div key={index} className="bg-white rounded-lg p-4 shadow-md">
+              <div
+                key={index}
+                className="bg-white rounded-xl p-4 shadow-md hover:shadow-xl transform hover:-translate-y-2 transition-all duration-300 bg-gradient-to-br from-white to-pink-50"
+              >
                 <div className="w-full h-[150px] overflow-hidden rounded-lg">
                   <Image
                     src={product.img}
                     alt={product.title}
                     width={300}
                     height={200}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover rounded-lg"
                   />
                 </div>
                 <div className="mt-4">
-                  <h3 className="text-lg font-semibold mb-1">{product.title}</h3>
+                  <h3 className="text-lg font-semibold text-gray-800 mb-1 line-clamp-2">{product.title}</h3>
                   <div className="mb-2">
                     {product.discount ? (
                       <>
-                        <span className="line-through text-sm mr-2">Rp{product.price}</span>
-                        <span className="text-pink-600 font-bold">Rp{product.discount}</span>
+                        <span className="line-through text-sm text-gray-500 mr-2">Rp{product.price?.toLocaleString("id-ID")}</span>
+                        <span className="text-pink-600 font-bold text-lg">Rp{product.discount.toLocaleString("id-ID")}</span>
                       </>
                     ) : (
-                      <span className="font-bold">Rp{product.price}</span>
+                      <span className="font-bold text-gray-900 text-lg">Rp{product.price?.toLocaleString("id-ID")}</span>
                     )}
                   </div>
                   <button
                     onClick={() => handleAddToCart(product)}
-                    className="w-full bg-pink-400 text-white py-2 rounded-md hover:bg-pink-500"
+                    className="w-full bg-pink-500 text-white py-2 rounded-lg hover:bg-pink-600 transition duration-300 font-medium"
                   >
                     Tambah ke Keranjang
                   </button>
@@ -139,54 +172,62 @@ export default function FlowersPage() {
       </div>
 
       {selectedProduct && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl p-6 max-w-sm w-full shadow-xl relative">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 animate-fade-in">
+          <div className="bg-white/90 backdrop-blur-md rounded-xl p-6 max-w-md w-full shadow-2xl transform transition-all duration-300 scale-100 hover:scale-105">
             <button
               onClick={closeModal}
-              className="absolute top-2 right-2 text-gray-500 hover:text-gray-800"
+              className="absolute top-4 right-4 text-gray-600 hover:text-pink-600 transition"
             >
               ✕
             </button>
 
-            <div className="w-full h-[220px] overflow-hidden rounded-md mb-4">
+            <div className="w-full h-[220px] overflow-hidden rounded-lg">
               <Image
                 src={selectedProduct.img}
                 alt={selectedProduct.title}
                 width={400}
                 height={300}
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover rounded-lg"
               />
             </div>
 
-            <h2 className="text-xl font-bold mb-2">{selectedProduct.title}</h2>
-            <p className="text-sm text-gray-600 mb-2">
-              Kategori: {selectedProduct.category}
-            </p>
-            <p className="mb-3">{selectedProduct.description}</p>
+            <h2 className="text-2xl font-bold text-gray-900 mt-4 mb-2">{selectedProduct.title}</h2>
+            <p className="text-sm text-gray-600 mb-2">Kategori: {selectedProduct.category}</p>
+            <p className="text-gray-700 mb-3 line-clamp-3">{selectedProduct.description}</p>
             <div className="mb-3">
               {selectedProduct.discount ? (
                 <>
-                  <span className="line-through mr-2 text-sm">Rp{selectedProduct.price}</span>
-                  <span className="text-pink-600 font-bold text-lg">Rp{selectedProduct.discount}</span>
+                  <span className="line-through text-sm text-gray-500 mr-2">Rp{selectedProduct.price?.toLocaleString("id-ID")}</span>
+                  <span className="text-pink-600 font-bold text-xl">Rp{selectedProduct.discount.toLocaleString("id-ID")}</span>
                 </>
               ) : (
-                <span className="text-lg font-bold">Rp{selectedProduct.price}</span>
+                <span className="text-gray-900 font-bold text-xl">Rp{selectedProduct.price?.toLocaleString("id-ID")}</span>
               )}
             </div>
             <div className="flex items-center mb-4">
-              <button onClick={decreaseQty} className="px-3 py-1 bg-gray-200 rounded-l hover:bg-gray-300">-</button>
-              <span className="px-4 py-1 border-t border-b">{quantity}</span>
-              <button onClick={increaseQty} className="px-3 py-1 bg-gray-200 rounded-r hover:bg-gray-300">+</button>
+              <button
+                onClick={decreaseQty}
+                className="w-10 h-10 bg-gray-200 rounded-l-full flex items-center justify-center hover:bg-gray-300 transition"
+              >
+                −
+              </button>
+              <span className="w-12 text-center py-2 border-t border-b border-gray-300">{quantity}</span>
+              <button
+                onClick={increaseQty}
+                className="w-10 h-10 bg-gray-200 rounded-r-full flex items-center justify-center hover:bg-gray-300 transition"
+              >
+                +
+              </button>
             </div>
             <button
-              className="w-full bg-pink-500 text-white py-2 rounded-md hover:bg-pink-600"
+              className="w-full bg-pink-500 text-white py-3 rounded-lg hover:bg-pink-600 transition duration-300 font-semibold"
               onClick={() => alert(`Menambahkan ${quantity} item '${selectedProduct.title}' ke keranjang!`)}
             >
               Tambah ke Keranjang
             </button>
 
             <Link href={getStaticPathFromSlug(selectedProduct.id_produk)}>
-              <button className="w-full mt-3 bg-pink-100 text-pink-600 py-2 rounded-md hover:bg-pink-200">
+              <button className="w-full mt-4 bg-pink-100 text-pink-600 py-3 rounded-lg hover:bg-pink-200 transition duration-300 font-medium">
                 Detail Produk
               </button>
             </Link>

@@ -29,7 +29,7 @@ export default function AboutPage() {
             />
             <div className="mt-3 text-center font-bold">
               <p>Papale</p>
-              <p className="text-sm">Univers</p>
+              <p className="text-sm">Universe</p>
               <p className="text-xs">Sistem Informasi</p>
             </div>
           </div>
