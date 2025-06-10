@@ -49,7 +49,7 @@ export interface Transaction {
 }
 
 // Inisialisasi koneksi database
-const sql = postgres(process.env.DATABASE_URL!, { ssl: { rejectUnauthorized: false } });
+const sql = postgres(process.env.DATABASE_URL || "");
 
 export async function fetchProducts(searchTerm: string = '') {
   try {

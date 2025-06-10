@@ -1,22 +1,33 @@
 import {
   fetchBestSellingProducts,
-  fetchLatestTransactions
-} from '@/app/lib/data';
+  fetchLatestTransactions,
+} from "@/app/lib/data";
 
-import StatsCards from '@/app/dashboard2/components/dashboard/StatsCards';
-import RevenueGraph from '@/app/dashboard2/components/dashboard/RevenueGraph';
-import ExpensesGraph from '@/app/dashboard2/components/dashboard/ExpensesGraph';
-import SalesGraph from '@/app/dashboard2/components/dashboard/SalesGraph';
-import LatestTransactions from '@/app/dashboard2/components/dashboard/LatestTransactions';
-import BestSellingProducts from '@/app/dashboard2/components/dashboard/BestSellingProducts';
+import StatsCards from "@/app/dashboard2/components/dashboard/StatsCards";
+import RevenueGraph from "@/app/dashboard2/components/dashboard/RevenueGraph";
+import ExpensesGraph from "@/app/dashboard2/components/dashboard/ExpensesGraph";
+import SalesGraph from "@/app/dashboard2/components/dashboard/SalesGraph";
+import LatestTransactions from "@/app/dashboard2/components/dashboard/LatestTransactions";
+import BestSellingProducts from "@/app/dashboard2/components/dashboard/BestSellingProducts";
+import ProfileSummary from "@/app/ui/dashboard/profile";
 
 export default async function Dashboard() {
   const bestSellingProducts = await fetchBestSellingProducts();
   const latestTransactions = await fetchLatestTransactions();
 
+  if (!bestSellingProducts || !latestTransactions) {
+    console.log("Data fetching failed:", { bestSellingProducts, latestTransactions });
+    return <div>Error: Data tidak tersedia</div>;
+  }
+
   return (
     <div className="flex min-h-screen bg-gray-100">
       <main className="flex-1 p-6">
+        {/* Wrapper untuk memposisikan profil ke kanan atas */}
+        <div className="flex justify-end mb-6">
+          <ProfileSummary />
+        </div>
+
         <h1 className="text-2xl font-bold mb-6 text-gray-800">Flowerscotch Dashboard</h1>
         <StatsCards />
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
@@ -32,4 +43,3 @@ export default async function Dashboard() {
     </div>
   );
 }
-

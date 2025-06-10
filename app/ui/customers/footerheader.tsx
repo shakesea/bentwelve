@@ -1,28 +1,51 @@
-'use client';
+"use client";
 
-import {
-  ShoppingBagIcon,
-} from '@heroicons/react/24/outline';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import clsx from 'clsx';
-import Image from 'next/image';
-import { useState } from 'react';
+import { ShoppingBagIcon } from "@heroicons/react/24/outline";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import clsx from "clsx";
+import Image from "next/image";
+import { useState, useEffect } from "react";
+import { useSession, signOut } from "next-auth/react";
 
 const navLinks = [
-  { name: 'Home', href: '/customers/home' },
-  { name: 'Flowers', href: '/customers/flowers' },
-  { name: 'About', href: '/customers/about' },
-  { name: 'Contact', href: '/customers/contact' },
+  { name: "Home", href: "/customers/home" },
+  { name: "Flowers", href: "/customers/flowers" },
+  { name: "About", href: "/customers/about" },
+  { name: "Contact", href: "/customers/contact" },
 ];
 
 export function Header() {
   const pathname = usePathname();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const { data: session, status } = useSession();
+  const [userName, setUserName] = useState("Guest");
+
+  useEffect(() => {
+    if (status === "loading") {
+      setUserName("Loading...");
+    } else if (status === "authenticated" && session?.user?.email) {
+      setUserName(session.user.email.split("@")[0] || "User");
+    } else {
+      setUserName("Guest");
+    }
+  }, [status, session]);
 
   const toggleDropdown = () => {
     setIsDropdownOpen(!isDropdownOpen);
   };
+
+  const handleLogout = async () => {
+    await signOut({ callbackUrl: "/" });
+  };
+
+  if (status === "loading") {
+    return <nav className="bg-[#D3628B] text-white h-20 px-8 flex items-center justify-center">Loading...</nav>;
+  }
+
+  if (!session) {
+    return <nav className="bg-[#D3628B] text-white h-20 px-8 flex items-center justify-center">Tidak ada sesi</nav>;
+  }
 
   return (
     <nav className="bg-[#D3628B] text-white flex justify-between items-center h-20 px-8">
@@ -41,9 +64,9 @@ export function Header() {
               key={link.name}
               href={link.href}
               className={clsx(
-                'flex items-center gap-2 p-3 rounded-r-full text-white relative group transition-all',
+                "flex items-center gap-2 p-3 rounded-r-full text-white relative group transition-all",
                 {
-                  'opacity-50': !isActive,
+                  "opacity-50": !isActive,
                 }
               )}
             >
@@ -60,14 +83,14 @@ export function Header() {
           onClick={toggleDropdown}
           className="flex items-center gap-2 text-white hover:text-gray-200 transition-colors"
         >
-          <span>Michael Mishra</span>
+          <span>{userName}</span>
           <Image
-          src="/bunga.png"
-          alt="Profile Picture"
-          width={40}
-          height={40}
-          className="rounded-full border-2 border-whtie-500"
-        />
+            src="/bunga.png"
+            alt="Profile Picture"
+            width={40}
+            height={40}
+            className="rounded-full border-2 border-white-500"
+          />
         </button>
         {isDropdownOpen && (
           <div className="absolute top-full right-0 mt-2 w-40 bg-white text-black rounded-lg shadow-lg py-2 z-10">
@@ -78,13 +101,12 @@ export function Header() {
             >
               Settings
             </Link>
-            <Link
-              href="/logout"
-              className="block px-4 py-2 hover:bg-gray-100"
-              onClick={() => setIsDropdownOpen(false)}
+            <button
+              onClick={handleLogout}
+              className="block px-4 py-2 w-full text-left hover:bg-gray-100"
             >
               Logout
-            </Link>
+            </button>
           </div>
         )}
       </div>

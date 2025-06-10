@@ -286,7 +286,7 @@ export default function FlowersPage() {
             <div className="mb-3">
               {selectedProduct.discount ? (
                 <>
-                  <span className="line-through text-sm text-gray-500 mr-2">Rp{product.price?.toLocaleString("id-ID")}</span>
+                  <span className="line-through text-sm text-gray-500 mr-2">Rp{selectedProduct.price?.toLocaleString("id-ID")}</span>
                   <span className="text-pink-600 font-bold text-xl">Rp{selectedProduct.discount.toLocaleString("id-ID")}</span>
                 </>
               ) : (
