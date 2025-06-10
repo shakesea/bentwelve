@@ -18,6 +18,7 @@ type Product = {
   features?: string[];
   note?: string;
   createdAt?: string;
+  total_sold?: number;
 };
 
 type Category = {
@@ -176,12 +177,12 @@ export default function FlowersPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50 to-white p-4 md:p-10">
+    <div className="min-h-screen bg-gradient-to-br from-pink-50 to-white p-4 md:p-10 relative">
       <h1 className="romanesca text-4xl md:text-5xl font-bold text-center text-pink-800 mb-10 animate-fade-in">
         Pilih Bunga Anda
       </h1>
       <div className="flex flex-col md:flex-row gap-6">
-        <aside className="w-full md:w-64 bg-white/90 backdrop-blur-md p-6 rounded-xl shadow-lg">
+        <aside className="w-64 bg-white/90 backdrop-blur-md p-6 rounded-xl shadow-lg fixed top-28 left-4 z-10 max-h-[calc(100vh-128px)] overflow-y-auto"> {/* Adjusted height to account for header (80px) and footer (estimated 48px + content) */}
           <div className="mb-6">
             <label className="block text-sm font-medium text-gray-700 mb-2">Urutkan berdasarkan:</label>
             <select
@@ -226,7 +227,7 @@ export default function FlowersPage() {
           </div>
         </aside>
 
-        <div className="flex-1 p-4 md:p-10 pt-0">
+        <div className="flex-1 ml-72 p-4 md:p-10 pt-0"> {/* Offset for sidebar */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full mt-8">
             {filteredProducts.length > 0 ? (
               filteredProducts.map((product, index) => (
