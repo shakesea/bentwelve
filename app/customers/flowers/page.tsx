@@ -26,15 +26,6 @@ type Category = {
   count: number;
 };
 
-type CartItem = {
-  id_produk: string;
-  title: string;
-  price: number | null;
-  discount?: number;
-  img: string;
-  quantity: number;
-};
-
 export default function FlowersPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -47,6 +38,11 @@ export default function FlowersPage() {
   const [searchQuery, setSearchQuery] = useState<string>(searchParams.get("q") || "");
   const [sortOption, setSortOption] = useState<string>("Terbaru");
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [currentPage, setCurrentPage] = useState<number>(
+    Number(searchParams.get("page")) || 1
+  );
+  const [totalPages, setTotalPages] = useState<number>(1);
+  const ITEMS_PER_PAGE = 12;
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -87,18 +83,15 @@ export default function FlowersPage() {
     return () => clearTimeout(timeout);
   }, [searchQuery, currentPage]);
 
-  // Filter and sort products
   useEffect(() => {
     let resultProducts = [...products];
 
-    // Apply category filter
     if (selectedCategories.length > 0) {
       resultProducts = resultProducts.filter((product) =>
         selectedCategories.includes(product.category)
       );
     }
 
-    // Apply sorting
     switch (sortOption) {
       case "Harga: Rendah ke Tinggi":
         resultProducts.sort((a, b) => {
@@ -119,7 +112,7 @@ export default function FlowersPage() {
         resultProducts.sort((a, b) => {
           const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
           const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
-          return dateB - dateA; // Newest first
+          return dateB - dateA;
         });
         break;
     }
@@ -129,7 +122,7 @@ export default function FlowersPage() {
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
-    setCurrentPage(1); // Reset to first page on search
+    setCurrentPage(1);
     router.push(`?q=${encodeURIComponent(e.target.value)}&page=1`);
   };
 
@@ -143,7 +136,7 @@ export default function FlowersPage() {
         ? prev.filter((cat) => cat !== category)
         : [...prev, category]
     );
-    setCurrentPage(1); // Reset to first page on category change
+    setCurrentPage(1);
   };
 
   const handlePageChange = (page: number) => {
@@ -156,31 +149,48 @@ export default function FlowersPage() {
     setQuantity(1);
   };
 
-  const addToCart = (product: Product, qty: number) => {
-    const cart: CartItem[] = JSON.parse(localStorage.getItem("cart") || "[]");
-    const existingItemIndex = cart.findIndex((item) => item.id_produk === product.id_produk);
+  const addToCart = () => {
+    if (!selectedProduct) return;
+
+    let cart = [];
+    if (typeof window !== 'undefined') {
+      cart = JSON.parse(localStorage.getItem("cart") || "[]");
+    }
+    const variant = "Round Arrangement";
+    const customRequest = "";
+
+    const existingItemIndex = cart.findIndex(
+      (item: any) => item.id_produk === selectedProduct.id_produk && 
+                    item.variant === variant && 
+                    item.customRequest === customRequest
+    );
 
     if (existingItemIndex >= 0) {
-      cart[existingItemIndex].quantity += qty;
+      cart[existingItemIndex].quantity += quantity;
     } else {
       cart.push({
-        id_produk: product.id_produk,
-        title: product.title,
-        price: product.price,
-        discount: product.discount,
-        img: product.img,
-        quantity: qty,
+        id_produk: selectedProduct.id_produk,
+        title: selectedProduct.title,
+        price: selectedProduct.discount || selectedProduct.price || 0, // Use discount if available
+        img: selectedProduct.img,
+        description: selectedProduct.description || "",
+        variant,
+        customRequest,
+        quantity,
       });
     }
 
-    localStorage.setItem("cart", JSON.stringify(cart));
-    setNotification(`Menambahkan ${qty} item '${product.title}' ke keranjang!`);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem("cart", JSON.stringify(cart));
+    }
     setSelectedProduct(null);
+    setCart(cart); // Update local state to reflect cart (optional for UI feedback)
 
-    // Automatically hide notification after 3 seconds
-    setTimeout(() => {
-      setNotification(null);
-    }, 3000);
+    alert(`Menambahkan ${quantity} item '${selectedProduct.title}' ke keranjang!`);
+    // Optional: Redirect to cart page
+    if (confirm("Ingin melihat keranjang sekarang?")) {
+      router.push("/customers/cart");
+    }
   };
 
   const closeModal = () => setSelectedProduct(null);
@@ -212,16 +222,8 @@ export default function FlowersPage() {
       <h1 className="romanesca text-4xl md:text-5xl font-bold text-center text-pink-800 mb-10 animate-fade-in">
         Pilih Bunga Anda
       </h1>
-
-      {/* Notification Toast */}
-      {notification && (
-        <div className="fixed top-4 right-4 bg-pink-500 text-white px-4 py-2 rounded-lg shadow-lg z-50 animate-slide-in">
-          {notification}
-        </div>
-      )}
-
       <div className="flex flex-col md:flex-row gap-6">
-        <aside className="w-64 bg-white/90 backdrop-blur-md p-6 rounded-xl shadow-lg fixed top-28 left-4 z-10 max-h-[calc(100vh-128px)] overflow-y-auto"> {/* Adjusted height to account for header (80px) and footer (estimated 48px + content) */}
+        <aside className="w-64 bg-white/90 backdrop-blur-md p-6 rounded-xl shadow-lg fixed top-28 left-4 z-10 max-h-[calc(100vh-128px)] overflow-y-auto">
           <div className="mb-6">
             <label className="block text-sm font-medium text-gray-700 mb-2">Urutkan berdasarkan:</label>
             <select
@@ -266,7 +268,7 @@ export default function FlowersPage() {
           </div>
         </aside>
 
-        <div className="flex-1 ml-72 p-4 md:p-10 pt-0"> {/* Offset for sidebar */}
+        <div className="flex-1 ml-72 p-4 md:p-10 pt-0">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full mt-8">
             {filteredProducts.length > 0 ? (
               filteredProducts.map((product, index) => (
@@ -309,7 +311,6 @@ export default function FlowersPage() {
             )}
           </div>
 
-          {/* Pagination */}
           {totalPages > 1 && (
             <div className="flex justify-center mt-6 gap-2">
               {Array.from({ length: totalPages }, (_, i) => (
@@ -379,7 +380,7 @@ export default function FlowersPage() {
             </div>
             <button
               className="w-full bg-pink-500 text-white py-3 rounded-lg hover:bg-pink-600 transition duration-300 font-semibold"
-              onClick={() => addToCart(selectedProduct, quantity)}
+              onClick={addToCart}
             >
               Tambah ke Keranjang
             </button>

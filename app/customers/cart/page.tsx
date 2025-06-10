@@ -22,11 +22,12 @@ export default function CartPage() {
   const { data: session, status } = useSession();
 
   useEffect(() => {
+    console.log("Session Status:", status, "Session Data:", session);
     if (typeof window !== 'undefined') {
       const storedCart = JSON.parse(localStorage.getItem("cart") || "[]");
       setCart(storedCart);
     }
-  }, []);
+  }, [session, status]);
 
   const updateCart = (updatedCart: CartItem[]) => {
     setCart(updatedCart);
@@ -35,42 +36,50 @@ export default function CartPage() {
     }
   };
 
-  const updateItemQuantity = (id_produk: string, variant: string, customRequest: string, action: 'increase' | 'decrease' | 'remove') => {
-    const updatedCart = action === 'remove' 
-      ? cart.filter(item => !(item.id_produk === id_produk && item.variant === variant && item.customRequest === customRequest))
-      : cart.map(item => {
-          if (item.id_produk === id_produk && item.variant === variant && item.customRequest === customRequest) {
-            if (action === 'increase') return { ...item, quantity: item.quantity + 1 };
-            if (action === 'decrease' && item.quantity > 1) return { ...item, quantity: item.quantity - 1 };
-          }
-          return item;
-        });
+  const increaseQty = (id_produk: string, variant: string, customRequest: string) => {
+    const updatedCart = cart.map((item) =>
+      item.id_produk === id_produk && item.variant === variant && item.customRequest === customRequest
+        ? { ...item, quantity: item.quantity + 1 }
+        : item
+    );
     updateCart(updatedCart);
   };
-  
-  const increaseQty = (id_produk: string, variant: string, customRequest: string) => 
-    updateItemQuantity(id_produk, variant, customRequest, 'increase');
-  
-  const decreaseQty = (id_produk: string, variant: string, customRequest: string) => 
-    updateItemQuantity(id_produk, variant, customRequest, 'decrease');
-  
-  const removeItem = (id_produk: string, variant: string, customRequest: string) => 
-    updateItemQuantity(id_produk, variant, customRequest, 'remove');
+
+  const decreaseQty = (id_produk: string, variant: string, customRequest: string) => {
+    const updatedCart = cart.map((item) =>
+      item.id_produk === id_produk && item.variant === variant && item.customRequest === customRequest && item.quantity > 1
+        ? { ...item, quantity: item.quantity - 1 }
+        : item
+    );
+    updateCart(updatedCart);
+  };
+
+  const removeItem = (id_produk: string, variant: string, customRequest: string) => {
+    const updatedCart = cart.filter(
+      (item) => !(item.id_produk === id_produk && item.variant === variant && item.customRequest === customRequest)
+    );
+    updateCart(updatedCart);
+  };
 
   const clearCart = () => {
     updateCart([]);
   };
 
-  const calculateTotal = React.useMemo(() => {
+  const calculateTotal = () => {
     return cart.reduce((total, item) => {
       const price = item.price || 0;
       return total + price * item.quantity;
     }, 0);
-  }, [cart]);
+  };
 
   const handleCheckout = async () => {
-    if (status === "loading") return;
+    console.log("Attempting Checkout - Session:", session, "Status:", status);
+    if (status === "loading") {
+      console.log("Session is loading, aborting checkout");
+      return;
+    }
     if (!session || !session.user?.id) {
+      console.log("No session or user ID found:", session);
       alert("Anda harus login terlebih dahulu!");
       return;
     }
@@ -84,18 +93,18 @@ export default function CartPage() {
       const transactionData = {
         nama_pembeli: session.user?.name || (session.user?.email ? session.user.email.split("@")[0] : "Guest"),
         tanggal: new Date().toISOString(),
-        total_harga: calculateTotal,
+        total_harga: calculateTotal(),
         id_user: session.user?.id,
         status: "Pending",
         items: cart.map((item) => ({
           id_produk: item.id_produk,
           jumlah: item.quantity,
+          variant: item.variant,
+          customRequest: item.customRequest || "",
         })),
       };
-      
-      // Log the transaction data to verify id_produk is included
-      console.log("Transaction items:", transactionData.items);
 
+      console.log("Sending Transaction Data:", transactionData);
       const response = await fetch("/api/transactions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -103,10 +112,14 @@ export default function CartPage() {
       });
 
       const responseData = await response.json();
+      console.log("API Response:", responseData);
 
       if (!response.ok) {
+        console.error("Checkout failed:", responseData);
         throw new Error(`Gagal membuat transaksi: ${responseData.error || "Unknown error"}`);
       }
+
+      console.log("Transaksi berhasil:", responseData);
 
       clearCart();
       alert("Checkout berhasil! Transaksi telah dibuat.");
@@ -201,7 +214,7 @@ export default function CartPage() {
               Kosongkan Keranjang
             </button>
             <div className="text-xl font-bold text-gray-900">
-              Total: Rp{calculateTotal.toLocaleString("id-ID")}
+              Total: Rp{calculateTotal().toLocaleString("id-ID")}
             </div>
           </div>
 
