@@ -347,14 +347,11 @@ export interface BestSellingProduct {
 export async function fetchBestSellingProducts() {
   return await sql`
     SELECT 
-      p.nama_produk AS name,
-      COUNT(t.id_transaksi) AS sales,
-      p.harga AS price
-    FROM public.transactions t
-    JOIN public.products p ON t.id_produk = p.id_produk
-    WHERE t.status = 'Confirmed'
-    GROUP BY p.id_produk, p.nama_produk, p.harga
-    ORDER BY sales DESC
+      nama_produk AS name,
+      COALESCE(total_sold, 0) AS sales,
+      harga AS price
+    FROM public.products
+    ORDER BY total_sold DESC NULLS LAST
     LIMIT 5
   `;
 } 

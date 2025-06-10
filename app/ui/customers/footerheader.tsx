@@ -78,7 +78,9 @@ export function Header() {
       </div>
 
       <div className="flex items-center gap-4 relative">
-        <ShoppingBagIcon className="w-5 h-5" />
+        <Link href="/customers/cart" title="Keranjang Belanja">
+          <ShoppingBagIcon className="w-5 h-5 hover:text-gray-200 transition-colors" />
+        </Link>
         <button
           onClick={toggleDropdown}
           className="flex items-center gap-2 text-white hover:text-gray-200 transition-colors"

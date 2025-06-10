@@ -26,6 +26,15 @@ type Category = {
   count: number;
 };
 
+type CartItem = {
+  id_produk: string;
+  title: string;
+  price: number | null;
+  discount?: number;
+  img: string;
+  quantity: number;
+};
+
 export default function FlowersPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -38,11 +47,6 @@ export default function FlowersPage() {
   const [searchQuery, setSearchQuery] = useState<string>(searchParams.get("q") || "");
   const [sortOption, setSortOption] = useState<string>("Terbaru");
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
-  const [currentPage, setCurrentPage] = useState<number>(
-    Number(searchParams.get("page")) || 1
-  );
-  const [totalPages, setTotalPages] = useState<number>(1);
-  const ITEMS_PER_PAGE = 12;
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -152,6 +156,33 @@ export default function FlowersPage() {
     setQuantity(1);
   };
 
+  const addToCart = (product: Product, qty: number) => {
+    const cart: CartItem[] = JSON.parse(localStorage.getItem("cart") || "[]");
+    const existingItemIndex = cart.findIndex((item) => item.id_produk === product.id_produk);
+
+    if (existingItemIndex >= 0) {
+      cart[existingItemIndex].quantity += qty;
+    } else {
+      cart.push({
+        id_produk: product.id_produk,
+        title: product.title,
+        price: product.price,
+        discount: product.discount,
+        img: product.img,
+        quantity: qty,
+      });
+    }
+
+    localStorage.setItem("cart", JSON.stringify(cart));
+    setNotification(`Menambahkan ${qty} item '${product.title}' ke keranjang!`);
+    setSelectedProduct(null);
+
+    // Automatically hide notification after 3 seconds
+    setTimeout(() => {
+      setNotification(null);
+    }, 3000);
+  };
+
   const closeModal = () => setSelectedProduct(null);
   const increaseQty = () => setQuantity((qty) => qty + 1);
   const decreaseQty = () => setQuantity((qty) => (qty > 1 ? qty - 1 : 1));
@@ -181,6 +212,14 @@ export default function FlowersPage() {
       <h1 className="romanesca text-4xl md:text-5xl font-bold text-center text-pink-800 mb-10 animate-fade-in">
         Pilih Bunga Anda
       </h1>
+
+      {/* Notification Toast */}
+      {notification && (
+        <div className="fixed top-4 right-4 bg-pink-500 text-white px-4 py-2 rounded-lg shadow-lg z-50 animate-slide-in">
+          {notification}
+        </div>
+      )}
+
       <div className="flex flex-col md:flex-row gap-6">
         <aside className="w-64 bg-white/90 backdrop-blur-md p-6 rounded-xl shadow-lg fixed top-28 left-4 z-10 max-h-[calc(100vh-128px)] overflow-y-auto"> {/* Adjusted height to account for header (80px) and footer (estimated 48px + content) */}
           <div className="mb-6">
@@ -340,7 +379,7 @@ export default function FlowersPage() {
             </div>
             <button
               className="w-full bg-pink-500 text-white py-3 rounded-lg hover:bg-pink-600 transition duration-300 font-semibold"
-              onClick={() => alert(`Menambahkan ${quantity} item '${selectedProduct.title}' ke keranjang!`)}
+              onClick={() => addToCart(selectedProduct, quantity)}
             >
               Tambah ke Keranjang
             </button>

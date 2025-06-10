@@ -1,4 +1,3 @@
-// app/customers/flowers/detail/[id]/page.tsx
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -14,15 +13,27 @@ type Product = {
   description: string;
 };
 
+type CartItem = {
+  id_produk: string;
+  title: string;
+  price: number | null;
+  img: string;
+  description: string;
+  variant: string;
+  customRequest: string;
+  quantity: number;
+};
+
 export default function FlowerDetailPage() {
   const [product, setProduct] = useState<Product | null>(null);
   const [variant, setVariant] = useState("Round Arrangement");
   const [customRequest, setCustomRequest] = useState("");
   const [quantity, setQuantity] = useState(1);
   const [error, setError] = useState<string | null>(null);
+  const [notification, setNotification] = useState<string | null>(null);
   const router = useRouter();
   const params = useParams();
-  const { id } = params as { id?: string }; // Ketik eksplisit untuk id
+  const { id } = params as { id?: string };
 
   useEffect(() => {
     if (!id) {
@@ -38,7 +49,7 @@ export default function FlowerDetailPage() {
           throw new Error(data.error || "Gagal mengambil produk");
         }
         setProduct(data);
-        setError(null); // Reset error jika sukses
+        setError(null);
       } catch (error) {
         console.error("Kesalahan saat mengambil produk:", error);
         setError((error as Error).message || "Terjadi kesalahan.");
@@ -47,6 +58,34 @@ export default function FlowerDetailPage() {
 
     fetchProduct();
   }, [id]);
+
+  const addToCart = (product: Product, qty: number) => {
+    const cart: CartItem[] = JSON.parse(localStorage.getItem("cart") || "[]");
+    const existingItemIndex = cart.findIndex((item) => item.id_produk === product.id_produk && item.variant === variant && item.customRequest === customRequest);
+
+    if (existingItemIndex >= 0) {
+      cart[existingItemIndex].quantity += qty;
+    } else {
+      cart.push({
+        id_produk: product.id_produk,
+        title: product.title,
+        price: product.price,
+        img: product.img,
+        description: product.description,
+        variant,
+        customRequest,
+        quantity: qty,
+      });
+    }
+
+    localStorage.setItem("cart", JSON.stringify(cart));
+    setNotification(`Menambahkan ${qty} item '${product.title}' ke keranjang!`);
+
+    // Automatically hide notification after 3 seconds
+    setTimeout(() => {
+      setNotification(null);
+    }, 3000);
+  };
 
   if (error) {
     return (
@@ -74,6 +113,13 @@ export default function FlowerDetailPage() {
       >
         ←
       </button>
+
+      {/* Notification Toast */}
+      {notification && (
+        <div className="fixed top-4 right-4 bg-pink-500 text-white px-4 py-2 rounded-lg shadow-lg z-50 animate-slide-in">
+          {notification}
+        </div>
+      )}
 
       <div className="flex flex-col lg:flex-row gap-12 p-6 md:p-12 max-w-7xl mx-auto">
         <div className="flex-1">
@@ -133,7 +179,7 @@ export default function FlowerDetailPage() {
           </div>
 
           <button
-            onClick={() => alert("Ditambahkan ke keranjang!")}
+            onClick={() => addToCart(product, quantity)}
             className="w-full border border-pink-500 text-pink-600 hover:bg-pink-50 py-2 rounded-md font-semibold"
           >
             Tambah ke Keranjang

@@ -26,7 +26,7 @@ export default async function CreateProductPage() {
 
       {/* Create Product Form */}
       <div className="max-w-lg mx-auto bg-white p-6 rounded-lg shadow-lg">
-        <form action={handleCreate} className="space-y-4">
+        <form action={handleCreate} className="space-y-4" encType="multipart/form-data">
           <div>
             <label
               htmlFor="name"
@@ -76,6 +76,22 @@ export default async function CreateProductPage() {
               className="mt-1 w-full rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-900 focus:border-pink-500 focus:ring-2 focus:ring-pink-200 transition-all duration-200"
               required
               min="1"
+            />
+          </div>
+          
+          <div>
+            <label
+              htmlFor="image"
+              className="block text-sm font-medium text-gray-700"
+            >
+              Product Image
+            </label>
+            <input
+              type="file"
+              name="image"
+              id="image"
+              accept="image/*"
+              className="mt-1 w-full rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-900 focus:border-pink-500 focus:ring-2 focus:ring-pink-200 transition-all duration-200"
             />
           </div>
 

@@ -34,12 +34,23 @@ export async function createProduct(prevState: any, formData: FormData) {
   }
 
   const { name, category, price } = validatedFields.data;
+  
+  // Get the image file from the form
+  const imageFile = formData.get('image') as File;
+  let imageUrl = '';
+  
+  if (imageFile && imageFile.size > 0) {
+    // Convert image to base64 string
+    const arrayBuffer = await imageFile.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+    imageUrl = `data:${imageFile.type};base64,${buffer.toString('base64')}`;
+  }
 
   try {
-    // Insert the new product into the database
+    // Insert the new product into the database with image
     await sql`
-      INSERT INTO public.products (nama_produk, kategori, harga)
-      VALUES (${name}, ${category}, ${price.toString()})
+      INSERT INTO public.products (nama_produk, kategori, harga, gambar)
+      VALUES (${name}, ${category}, ${price.toString()}, ${imageUrl})
     `;
 
     // Revalidate the products page to reflect the new product
