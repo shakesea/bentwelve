@@ -16,6 +16,7 @@ type Product = {
   variant?: string;
   features?: string[];
   note?: string;
+  createdAt?: string;
 };
 
 type Category = {
@@ -25,18 +26,23 @@ type Category = {
 
 export default function FlowersPage() {
   const [products, setProducts] = useState<Product[]>([]);
+  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [quantity, setQuantity] = useState(1);
   const [categories, setCategories] = useState<Category[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [sortOption, setSortOption] = useState<string>("Terbaru");
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
 
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await fetch("/api/products");
+        const response = await fetch(`/api/products?q=${encodeURIComponent(searchQuery)}`);
         const data = await response.json();
         if (response.ok) {
           setProducts(data);
+          setFilteredProducts(data);
 
           const categoryCounts: { [key: string]: number } = {};
           data.forEach((product: Product) => {
@@ -58,8 +64,77 @@ export default function FlowersPage() {
       }
     };
 
-    fetchProducts();
-  }, []);
+    const timeout = setTimeout(() => {
+      fetchProducts();
+    }, 300);
+
+    return () => clearTimeout(timeout);
+  }, [searchQuery]);
+
+  // Filter and sort products
+  useEffect(() => {
+    let resultProducts = [...products];
+
+    // Apply search filter
+    if (searchQuery) {
+      resultProducts = resultProducts.filter(
+        (product) =>
+          product.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          product.category.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+
+    // Apply category filter
+    if (selectedCategories.length > 0) {
+      resultProducts = resultProducts.filter((product) =>
+        selectedCategories.includes(product.category)
+      );
+    }
+
+    // Apply sorting
+    switch (sortOption) {
+      case "Harga: Rendah ke Tinggi":
+        resultProducts.sort((a, b) => {
+          const priceA = a.discount || a.price || 0;
+          const priceB = b.discount || b.price || 0;
+          return priceA - priceB;
+        });
+        break;
+      case "Harga: Tinggi ke Rendah":
+        resultProducts.sort((a, b) => {
+          const priceA = a.discount || a.price || 0;
+          const priceB = b.discount || b.price || 0;
+          return priceB - priceA;
+        });
+        break;
+      case "Terbaru":
+      default:
+        resultProducts.sort((a, b) => {
+          const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+          const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+          return dateB - dateA; // Newest first
+        });
+        break;
+    }
+
+    setFilteredProducts(resultProducts);
+  }, [products, searchQuery, sortOption, selectedCategories]);
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
+  };
+
+  const handleSortChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setSortOption(e.target.value);
+  };
+
+  const handleCategoryChange = (category: string) => {
+    setSelectedCategories((prev) =>
+      prev.includes(category)
+        ? prev.filter((cat) => cat !== category)
+        : [...prev, category]
+    );
+  };
 
   const handleAddToCart = (product: Product) => {
     setSelectedProduct(product);
@@ -99,10 +174,14 @@ export default function FlowersPage() {
         <aside className="w-full md:w-64 bg-white/90 backdrop-blur-md p-6 rounded-xl shadow-lg">
           <div className="mb-6">
             <label className="block text-sm font-medium text-gray-700 mb-2">Urutkan berdasarkan:</label>
-            <select className="w-full p-2 border border-pink-200 rounded-lg bg-white focus:ring-2 focus:ring-pink-400 transition">
-              <option>Terbaru</option>
-              <option>Harga: Rendah ke Tinggi</option>
-              <option>Harga: Tinggi ke Rendah</option>
+            <select
+              value={sortOption}
+              onChange={handleSortChange}
+              className="w-full p-2 border border-pink-200 rounded-lg bg-white focus:ring-2 focus:ring-pink-400 transition"
+            >
+              <option value="Terbaru">Terbaru</option>
+              <option value="Harga: Rendah ke Tinggi">Harga: Rendah ke Tinggi</option>
+              <option value="Harga: Tinggi ke Rendah">Harga: Tinggi ke Rendah</option>
             </select>
           </div>
           <div className="mb-6">
@@ -110,6 +189,8 @@ export default function FlowersPage() {
               type="text"
               placeholder="Cari..."
               className="w-full p-2 border border-pink-200 rounded-lg bg-white focus:ring-2 focus:ring-pink-400 transition"
+              value={searchQuery}
+              onChange={handleSearchChange}
             />
           </div>
           <div>
@@ -122,7 +203,12 @@ export default function FlowersPage() {
             <div className="space-y-3">
               {categories.map((category, index) => (
                 <label key={index} className="flex items-center gap-2 text-gray-700 hover:text-pink-600 transition">
-                  <input type="checkbox" className="accent-pink-500" /> 
+                  <input
+                    type="checkbox"
+                    className="accent-pink-500"
+                    checked={selectedCategories.includes(category.name)}
+                    onChange={() => handleCategoryChange(category.name)}
+                  />
                   {category.name} ({category.count})
                 </label>
               ))}
@@ -132,41 +218,45 @@ export default function FlowersPage() {
 
         <div className="flex-1 p-4 md:p-10 pt-0">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full mt-8">
-            {products.map((product, index) => (
-              <div
-                key={index}
-                className="bg-white rounded-xl p-4 shadow-md hover:shadow-xl transform hover:-translate-y-2 transition-all duration-300 bg-gradient-to-br from-white to-pink-50"
-              >
-                <div className="w-full h-[150px] overflow-hidden rounded-lg">
-                  <Image
-                    src={product.img}
-                    alt={product.title}
-                    width={300}
-                    height={200}
-                    className="w-full h-full object-cover rounded-lg"
-                  />
-                </div>
-                <div className="mt-4">
-                  <h3 className="text-lg font-semibold text-gray-800 mb-1 line-clamp-2">{product.title}</h3>
-                  <div className="mb-2">
-                    {product.discount ? (
-                      <>
-                        <span className="line-through text-sm text-gray-500 mr-2">Rp{product.price?.toLocaleString("id-ID")}</span>
-                        <span className="text-pink-600 font-bold text-lg">Rp{product.discount.toLocaleString("id-ID")}</span>
-                      </>
-                    ) : (
-                      <span className="font-bold text-gray-900 text-lg">Rp{product.price?.toLocaleString("id-ID")}</span>
-                    )}
+            {filteredProducts.length > 0 ? (
+              filteredProducts.map((product, index) => (
+                <div
+                  key={index}
+                  className="bg-white rounded-xl p-4 shadow-md hover:shadow-xl transform hover:-translate-y-2 transition-all duration-300 bg-gradient-to-br from-white to-pink-50"
+                >
+                  <div className="w-full h-[150px] overflow-hidden rounded-lg">
+                    <Image
+                      src={product.img}
+                      alt={product.title}
+                      width={300}
+                      height={200}
+                      className="w-full h-full object-cover rounded-lg"
+                    />
                   </div>
-                  <button
-                    onClick={() => handleAddToCart(product)}
-                    className="w-full bg-pink-500 text-white py-2 rounded-lg hover:bg-pink-600 transition duration-300 font-medium"
-                  >
-                    Tambah ke Keranjang
-                  </button>
+                  <div className="mt-4">
+                    <h3 className="text-lg font-semibold text-gray-800 mb-1 line-clamp-2">{product.title}</h3>
+                    <div className="mb-2">
+                      {product.discount ? (
+                        <>
+                          <span className="line-through text-sm text-gray-500 mr-2">Rp{product.price?.toLocaleString("id-ID")}</span>
+                          <span className="text-pink-600 font-bold text-lg">Rp{product.discount.toLocaleString("id-ID")}</span>
+                        </>
+                      ) : (
+                        <span className="font-bold text-gray-900 text-lg">Rp{product.price?.toLocaleString("id-ID")}</span>
+                      )}
+                    </div>
+                    <button
+                      onClick={() => handleAddToCart(product)}
+                      className="w-full bg-pink-500 text-white py-2 rounded-lg hover:bg-pink-600 transition duration-300 font-medium"
+                    >
+                      Tambah ke Keranjang
+                    </button>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))
+            ) : (
+              <p className="text-center text-gray-600 col-span-full">Tidak ada produk yang ditemukan.</p>
+            )}
           </div>
         </div>
       </div>
@@ -190,14 +280,13 @@ export default function FlowersPage() {
                 className="w-full h-full object-cover rounded-lg"
               />
             </div>
-
             <h2 className="text-2xl font-bold text-gray-900 mt-4 mb-2">{selectedProduct.title}</h2>
             <p className="text-sm text-gray-600 mb-2">Kategori: {selectedProduct.category}</p>
             <p className="text-gray-700 mb-3 line-clamp-3">{selectedProduct.description}</p>
             <div className="mb-3">
               {selectedProduct.discount ? (
                 <>
-                  <span className="line-through text-sm text-gray-500 mr-2">Rp{selectedProduct.price?.toLocaleString("id-ID")}</span>
+                  <span className="line-through text-sm text-gray-500 mr-2">Rp{product.price?.toLocaleString("id-ID")}</span>
                   <span className="text-pink-600 font-bold text-xl">Rp{selectedProduct.discount.toLocaleString("id-ID")}</span>
                 </>
               ) : (
