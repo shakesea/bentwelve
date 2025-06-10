@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 
 type Product = {
   id_produk: string;
@@ -25,27 +26,37 @@ type Category = {
 };
 
 export default function FlowersPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [products, setProducts] = useState<Product[]>([]);
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [quantity, setQuantity] = useState(1);
   const [categories, setCategories] = useState<Category[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [searchQuery, setSearchQuery] = useState<string>(searchParams.get("q") || "");
   const [sortOption, setSortOption] = useState<string>("Terbaru");
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [currentPage, setCurrentPage] = useState<number>(
+    Number(searchParams.get("page")) || 1
+  );
+  const [totalPages, setTotalPages] = useState<number>(1);
+  const ITEMS_PER_PAGE = 12;
 
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await fetch(`/api/products?q=${encodeURIComponent(searchQuery)}`);
+        const response = await fetch(
+          `/api/products?q=${encodeURIComponent(searchQuery)}&page=${currentPage}&limit=${ITEMS_PER_PAGE}`
+        );
         const data = await response.json();
         if (response.ok) {
-          setProducts(data);
-          setFilteredProducts(data);
+          setProducts(data.products || []);
+          setFilteredProducts(data.products || []);
+          setTotalPages(Math.ceil((data.totalCount || 0) / ITEMS_PER_PAGE));
 
           const categoryCounts: { [key: string]: number } = {};
-          data.forEach((product: Product) => {
+          data.products.forEach((product: Product) => {
             categoryCounts[product.category] = (categoryCounts[product.category] || 0) + 1;
           });
 
@@ -69,20 +80,11 @@ export default function FlowersPage() {
     }, 300);
 
     return () => clearTimeout(timeout);
-  }, [searchQuery]);
+  }, [searchQuery, currentPage]);
 
   // Filter and sort products
   useEffect(() => {
     let resultProducts = [...products];
-
-    // Apply search filter
-    if (searchQuery) {
-      resultProducts = resultProducts.filter(
-        (product) =>
-          product.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          product.category.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-    }
 
     // Apply category filter
     if (selectedCategories.length > 0) {
@@ -118,10 +120,12 @@ export default function FlowersPage() {
     }
 
     setFilteredProducts(resultProducts);
-  }, [products, searchQuery, sortOption, selectedCategories]);
+  }, [products, sortOption, selectedCategories]);
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
+    setCurrentPage(1); // Reset to first page on search
+    router.push(`?q=${encodeURIComponent(e.target.value)}&page=1`);
   };
 
   const handleSortChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -134,6 +138,12 @@ export default function FlowersPage() {
         ? prev.filter((cat) => cat !== category)
         : [...prev, category]
     );
+    setCurrentPage(1); // Reset to first page on category change
+  };
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    router.push(`?q=${encodeURIComponent(searchQuery)}&page=${page}`);
   };
 
   const handleAddToCart = (product: Product) => {
@@ -258,6 +268,25 @@ export default function FlowersPage() {
               <p className="text-center text-gray-600 col-span-full">Tidak ada produk yang ditemukan.</p>
             )}
           </div>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex justify-center mt-6 gap-2">
+              {Array.from({ length: totalPages }, (_, i) => (
+                <button
+                  key={i}
+                  onClick={() => handlePageChange(i + 1)}
+                  className={`px-3 py-1 rounded-md text-sm font-medium transition-colors duration-200 ${
+                    currentPage === i + 1
+                      ? "bg-pink-500 text-white"
+                      : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                  }`}
+                >
+                  {i + 1}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
