@@ -46,7 +46,6 @@ const carouselItems = [
 export default function FlowersPage() {
   const [currentIndex, setCurrentIndex] = useState(0);
 
-  // Auto-slide setiap 5 detik
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentIndex((prevIndex) =>
@@ -82,9 +81,7 @@ export default function FlowersPage() {
             {carouselItems.map((item, index) => (
               <div
                 key={index}
-                className={`${styles.carouselItem} ${
-                  index === currentIndex ? 'block' : 'hidden'
-                }`}
+                className={`${styles.carouselItem} ${index === currentIndex ? 'block' : 'hidden'}`}
               >
                 <Image
                   src={item.image}
@@ -93,6 +90,18 @@ export default function FlowersPage() {
                   height={400}
                   className={styles.carouselImage}
                 />
+
+                {/* Dot indikator di bawah gambar */}
+                <div className={styles.carouselIndicators}>
+                  {carouselItems.map((_, i) => (
+                    <span
+                      key={i}
+                      className={`${styles.dot} ${i === currentIndex ? styles.activeDot : ''}`}
+                      onClick={() => setCurrentIndex(i)}
+                    />
+                  ))}
+                </div>
+
                 <div className={styles.carouselText}>
                   <h1 className={styles.carouselHeading}>{item.heading}</h1>
                   <p className={styles.carouselSubheading}>{item.subheading}</p>
@@ -110,135 +119,57 @@ export default function FlowersPage() {
         </section>
       </header>
 
-      {/* Welcome Text */}
+      {/* Bagian lain tidak berubah */}
       <div className={styles.welcomeSection}>
         <h1 className={styles.welcomeText}>
           <Welcome />
         </h1>
       </div>
 
-      {/* Bagian Spesialisasi */}
       <section className={styles.specialtySection}>
         <h2 className={styles.sectionHeading}>Spesialisasi Kami</h2>
         <div className={styles.specialtyImages}>
-          <Image
-            src="/f1.png"
-            alt="Spesialisasi 1"
-            width={200}
-            height={200}
-            className={styles.specialtyImage}
-          />
-          <Image
-            src="/f2.png"
-            alt="Spesialisasi 2"
-            width={200}
-            height={200}
-            className={styles.specialtyImage}
-          />
-          <Image
-            src="/f3.png"
-            alt="Spesialisasi 3"
-            width={200}
-            height={200}
-            className={styles.specialtyImage}
-          />
+          <Image src="/f1.png" alt="Spesialisasi 1" width={200} height={200} className={styles.specialtyImage} />
+          <Image src="/f2.png" alt="Spesialisasi 2" width={200} height={200} className={styles.specialtyImage} />
+          <Image src="/f3.png" alt="Spesialisasi 3" width={200} height={200} className={styles.specialtyImage} />
         </div>
       </section>
 
-      {/* Bagian Layanan */}
       <section className={styles.servicesSection}>
         <h2 className={styles.sectionHeading}>Layanan Flowerscotch</h2>
         <div className={styles.serviceItems}>
           <div className={styles.serviceItem}>
-            <Image
-              src="/chatgpt1.png"
-              alt="Sentuhan Pribadi"
-              width={200}
-              height={200}
-              className={styles.serviceImage}
-            />
+            <Image src="/chatgpt1.png" alt="Sentuhan Pribadi" width={200} height={200} className={styles.serviceImage} />
             <h3 className={styles.serviceHeading}>Terhubung Secara Pribadi</h3>
-            <p className={styles.serviceDescription}>
-              Layanan yang dapat disesuaikan...
-            </p>
-            <a href="#pelajari-lebih-lanjut" className={styles.serviceLink}>
-              Pelajari Lebih Lanjut
-            </a>
+            <p className={styles.serviceDescription}>Layanan yang dapat disesuaikan...</p>
+            <a href="#pelajari-lebih-lanjut" className={styles.serviceLink}>Pelajari Lebih Lanjut</a>
           </div>
           <div className={styles.serviceItem}>
-            <Image
-              src="/chatgpt3.png"
-              alt="Butuh Bunga Sekarang?"
-              width={200}
-              height={200}
-              className={styles.serviceImage}
-            />
+            <Image src="/chatgpt3.png" alt="Butuh Bunga Sekarang?" width={200} height={200} className={styles.serviceImage} />
             <h3 className={styles.serviceHeading}>Butuh Bunga Sekarang?</h3>
-            <p className={styles.serviceDescription}>
-              Pesan di hari yang sama...
-            </p>
-            <a href="#pelajari-lebih-lanjut" className={styles.serviceLink}>
-              Pelajari Lebih Lanjut
-            </a>
+            <p className={styles.serviceDescription}>Pesan di hari yang sama...</p>
+            <a href="#pelajari-lebih-lanjut" className={styles.serviceLink}>Pelajari Lebih Lanjut</a>
           </div>
           <div className={styles.serviceItem}>
-            <Image
-              src="/chatgpt2.png"
-              alt="Jaminan Kepuasan"
-              width={200}
-              height={200}
-              className={styles.serviceImage}
-            />
+            <Image src="/chatgpt2.png" alt="Jaminan Kepuasan" width={200} height={200} className={styles.serviceImage} />
             <h3 className={styles.serviceHeading}>Jaminan Kepuasan</h3>
             <p className={styles.serviceDescription}>Kepuasan terjamin...</p>
-            <a href="#pelajari-lebih-lanjut" className={styles.serviceLink}>
-              Pelajari Lebih Lanjut
-            </a>
+            <a href="#pelajari-lebih-lanjut" className={styles.serviceLink}>Pelajari Lebih Lanjut</a>
           </div>
         </div>
       </section>
 
-      {/* Bagian Lokasi */}
       <section className={styles.locationSection}>
         <div className={styles.locationContent}>
           <h2 className={styles.sectionHeading}>Lokasi Kami</h2>
           <p className={styles.locationText}>
-            Jl. Melati Indah No. 27, Kel. Sakura, Kec. Bloomville, Kota
-            Florencia 12345 🌸
+            Jl. Melati Indah No. 27, Kel. Sakura, Kec. Bloomville, Kota Florencia 12345 🌸
           </p>
           <button className={styles.locationButton}>Peta</button>
         </div>
-        <Image
-          src="/place.png"
-          alt="Lokasi Toko"
-          width={300}
-          height={200}
-          className={styles.locationImage}
-        />
+        <Image src="/place.png" alt="Lokasi Toko" width={300} height={200} className={styles.locationImage} />
       </section>
 
-      {/* Bagian Dekorasi */}
-      {/* <section className={styles.decorationSection}>
-        <Image
-          src="/workshop.png"
-          alt="Dekorasi"
-          width={1200}
-          height={400}
-          className={styles.decorationImage}
-        />
-        <div className={styles.decorationText}>
-          <h2 className={styles.decorationHeading}>Dekorasi</h2>
-          <h3 className={styles.decorationSubheading}>
-            Dekorasi Elegan untuk Berbagai Acara
-          </h3>
-          <p className={styles.decorationDescription}>
-            Buat momen spesial lebih berkesan dengan dekorasi bunga untuk
-            pernikahan, acara formal, dan perayaan intim.
-          </p>
-        </div> */}
-
-
-      {/* Footer Section */}
       <footer className={styles.footer}>
         <div className={styles.footerContent}>
           <h3 className={styles.footerHeading}>Mekar Bersama Kami</h3>
