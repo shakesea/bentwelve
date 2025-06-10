@@ -4,7 +4,8 @@ import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 import postgres from 'postgres';
 import { z } from 'zod';
-import { pool } from './db';
+import bcrypt from 'bcryptjs';
+import { Pool } from 'pg';
 
 const sql = postgres(process.env.DATABASE_URL!);
 
@@ -148,4 +149,52 @@ export async function createTransaction(prevState: any, formData: FormData) {
     console.error('Failed to create transaction:', error);
     return { message: 'Failed to create transaction.', errors: {} };
   }
+}
+
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: process.env.DATABASE_URL?.includes("localhost") ? false : { rejectUnauthorized: false },
+});
+
+export async function createUser(formData: FormData) {
+  const username = formData.get("username") as string;
+  const email = formData.get("email") as string;
+  const password = formData.get("password") as string;
+
+  if (!username || !email || !password) {
+    throw new Error("All fields are required");
+  }
+
+  let client;
+  try {
+    client = await pool.connect();
+    console.log("Connected to database, checking email:", email);
+
+    const checkQuery = await client.query(
+      `SELECT email FROM users WHERE email = $1`,
+      [email]
+    );
+    console.log("Query result:", checkQuery);
+
+    if (checkQuery.rows && checkQuery.rows.length > 0) {
+      throw new Error("Email already registered");
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    await client.query(
+      `INSERT INTO users (name, email, password, created_at, role)
+       VALUES ($1, $2, $3, CURRENT_TIMESTAMP, $4)`,
+      [username, email, hashedPassword, "user"]
+    );
+    revalidatePath("/");
+  } catch (error) {
+    console.error("Error creating user:", error);
+    const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
+    throw new Error(`Failed to create user: ${errorMessage}`);
+  } finally {
+    if (client) client.release();
+  }
+
+  // Pindahkan redirect di luar try-catch
+  redirect("/");
 }

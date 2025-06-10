@@ -1,22 +1,30 @@
-'use client';
+// app/AuthRegister.tsx
+"use client";
 
 import { FaUser, FaEnvelope, FaLock, FaGoogle } from "react-icons/fa";
-import Link from 'next/link';
-import { useRef } from 'react';
+import Link from "next/link";
+import { useRef, FormEvent } from "react";
+import { createUser } from 'app/lib/actions'; // Impor dari actions.ts
 
 const AuthRegister = () => {
   const usernameRef = useRef<HTMLInputElement>(null);
   const emailRef = useRef<HTMLInputElement>(null);
   const passwordRef = useRef<HTMLInputElement>(null);
 
-  const handleRegister = (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log({
-      username: usernameRef.current?.value,
-      email: emailRef.current?.value,
-      password: passwordRef.current?.value,
-    });
-  };
+  const handleRegister = async (e: FormEvent) => {
+  e.preventDefault();
+  const formData = new FormData();
+  formData.append("username", usernameRef.current?.value || "");
+  formData.append("email", emailRef.current?.value || "");
+  formData.append("password", passwordRef.current?.value || "");
+
+  try {
+    await createUser(formData);
+    alert("Registration successful! Redirecting to login...");
+  } catch (error) {
+    alert((error as Error).message || "Registration failed");
+  }
+};
 
   return (
     <div className="w-1/2 p-10 flex flex-col justify-center items-center text-center">
@@ -26,9 +34,11 @@ const AuthRegister = () => {
         <div className="relative">
           <input
             type="text"
+            name="username"
             placeholder="Username"
             className="w-full px-4 py-2 pr-10 rounded shadow border border-gray-300 focus:outline-none"
             ref={usernameRef}
+            required
           />
           <FaUser className="absolute right-3 top-2.5 text-gray-500" />
         </div>
@@ -37,9 +47,11 @@ const AuthRegister = () => {
         <div className="relative">
           <input
             type="email"
+            name="email"
             placeholder="Email Address"
             className="w-full px-4 py-2 pr-10 rounded shadow border border-gray-300 focus:outline-none"
             ref={emailRef}
+            required
           />
           <FaEnvelope className="absolute right-3 top-2.5 text-gray-500" />
         </div>
@@ -48,9 +60,11 @@ const AuthRegister = () => {
         <div className="relative">
           <input
             type="password"
+            name="password"
             placeholder="Password"
             className="w-full px-4 py-2 pr-10 rounded shadow border border-gray-300 focus:outline-none"
             ref={passwordRef}
+            required
           />
           <FaLock className="absolute right-3 top-2.5 text-gray-500" />
         </div>
@@ -75,7 +89,7 @@ const AuthRegister = () => {
         {/* Login Link */}
         <p className="text-sm text-gray-700">
           Already have an account?{" "}
-          <Link href="/" className="text-pink-600 hover:underline font-semibold">
+          <Link href="/login" className="text-pink-600 hover:underline font-semibold">
             Login
           </Link>
         </p>
