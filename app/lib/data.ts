@@ -51,7 +51,11 @@ export interface Transaction {
 // Inisialisasi koneksi database
 const sql = postgres(process.env.DATABASE_URL || "");
 
-export async function fetchProducts(searchTerm: string = '') {
+// Update fetchProducts to support pagination
+export async function fetchProducts(searchTerm: string = '', currentPage: number = 1) {
+  const PAGE_SIZE = 10;
+  const offset = (currentPage - 1) * PAGE_SIZE;
+
   try {
     return await sql`
       SELECT id_produk as id, nama_produk as name, harga as price, kategori as category, gambar as image
@@ -59,10 +63,28 @@ export async function fetchProducts(searchTerm: string = '') {
       WHERE kategori IN ('Bunga Potong', 'Rangkaian Bunga')
         AND nama_produk ILIKE ${'%' + searchTerm + '%'}
       ORDER BY created_at DESC
+      LIMIT ${PAGE_SIZE}
+      OFFSET ${offset}
     `;
   } catch (error) {
     console.error('Error fetching products:', error);
     throw new Error('Failed to fetch products.');
+  }
+}
+
+// Add fetchProductCount to get total number of matching products
+export async function fetchProductCount(searchTerm: string = '') {
+  try {
+    const data = await sql`
+      SELECT COUNT(*) as total
+      FROM public.products
+      WHERE kategori IN ('Bunga Potong', 'Rangkaian Bunga')
+        AND nama_produk ILIKE ${'%' + searchTerm + '%'}
+    `;
+    return Number(data[0].total) || 0;
+  } catch (error) {
+    console.error('Error fetching product count:', error);
+    throw new Error('Failed to fetch product count.');
   }
 }
 

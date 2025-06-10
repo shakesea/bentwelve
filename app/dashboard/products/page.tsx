@@ -2,8 +2,9 @@
 
 import Image from 'next/image';
 import { redirect } from 'next/navigation';
-import { fetchProducts } from '@/app/lib/data';
+import { fetchProducts, fetchProductCount } from '@/app/lib/data';
 import Link from 'next/link';
+import { notFound } from 'next/navigation';
 
 interface PageProps {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
@@ -12,7 +13,17 @@ interface PageProps {
 export default async function ProductsPage({ searchParams }: PageProps) {
   const params = await searchParams;
   const searchTerm = typeof params.search === 'string' ? params.search : '';
-  const products = await fetchProducts(searchTerm);
+  const currentPage = Number(params.page) || 1;
+  const ITEMS_PER_PAGE = 10;
+
+  const products = await fetchProducts(searchTerm, currentPage);
+  const totalProducts = await fetchProductCount(searchTerm);
+
+  if (currentPage < 1 || (!products.length && totalProducts > 0)) {
+    notFound();
+  }
+
+  const totalPages = Math.ceil(totalProducts / ITEMS_PER_PAGE);
 
   async function search(formData: FormData) {
     'use server';
@@ -93,7 +104,7 @@ export default async function ProductsPage({ searchParams }: PageProps) {
                   className="hover:bg-gray-50 transition-colors duration-200"
                 >
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                    {String(idx + 1).padStart(2, '0')}
+                    {String(idx + 1 + (currentPage - 1) * ITEMS_PER_PAGE).padStart(2, '0')}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center space-x-3">
@@ -141,6 +152,25 @@ export default async function ProductsPage({ searchParams }: PageProps) {
           </tbody>
         </table>
       </div>
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex justify-center mt-6 gap-2">
+          {Array.from({ length: totalPages }, (_, i) => (
+            <a
+              key={i}
+              href={`?search=${encodeURIComponent(searchTerm)}&page=${i + 1}`}
+              className={`px-3 py-1 rounded-md text-sm font-medium transition-colors duration-200 ${
+                currentPage === i + 1
+                  ? 'bg-pink-500 text-white'
+                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              }`}
+            >
+              {i + 1}
+            </a>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
