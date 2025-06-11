@@ -66,7 +66,7 @@ export async function createProduct(prevState: any, formData: FormData) {
 }
 
 export async function updateProduct(id: string, prevState: any, formData: FormData) {
-  // Existing updateProduct function remains unchanged
+  // Validate form data
   const validatedFields = FormSchema.safeParse({
     id,
     name: formData.get('name'),
@@ -82,13 +82,37 @@ export async function updateProduct(id: string, prevState: any, formData: FormDa
   }
 
   const { name, category, price } = validatedFields.data;
-
+  
+  // Get the image file from the form
+  const imageFile = formData.get('image') as File;
+  
   try {
-    await sql`
-      UPDATE public.products
-      SET nama_produk = ${name}, kategori = ${category}, harga = ${price.toString()}
-      WHERE id_produk = ${id}
-    `;
+    // Process image if a new one was uploaded
+    if (imageFile && imageFile.size > 0) {
+      // Convert image to base64 string
+      const arrayBuffer = await imageFile.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
+      const imageUrl = `data:${imageFile.type};base64,${buffer.toString('base64')}`;
+      
+      // Update product with new image
+      await sql`
+        UPDATE public.products
+        SET nama_produk = ${name}, 
+            kategori = ${category}, 
+            harga = ${price.toString()},
+            gambar = ${imageUrl}
+        WHERE id_produk = ${id}
+      `;
+    } else {
+      // Update product without changing the image
+      await sql`
+        UPDATE public.products
+        SET nama_produk = ${name}, 
+            kategori = ${category}, 
+            harga = ${price.toString()}
+        WHERE id_produk = ${id}
+      `;
+    }
 
     revalidatePath('/dashboard/products');
     return { message: 'Product updated successfully', errors: {} };

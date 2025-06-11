@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation';
 import { fetchProductById } from '@/app/lib/data';
 import { updateProduct } from '@/app/lib/actions';
 import Link from 'next/link';
+import ImagePreview from './image-preview';
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -96,6 +97,37 @@ export default async function UpdateProductPage({ params }: PageProps) {
               min="1"
               required
             />
+          </div>
+          
+          <div>
+            <label htmlFor="image" className="block text-sm font-medium text-gray-700">
+              Product Image
+            </label>
+            <div className="mt-2 mb-4">
+              <p className="text-sm text-gray-500 mb-2">Current Image:</p>
+              <div className="relative h-40 w-40 overflow-hidden rounded-md border border-gray-200">
+                {product.image ? (
+                  <ImagePreview 
+                    src={product.image} 
+                    alt={product.name} 
+                  />
+                ) : (
+                  <img 
+                    src="/default-image.jpg" 
+                    alt="Default" 
+                    className="h-full w-full object-cover"
+                  />
+                )}
+              </div>
+            </div>
+            <input
+              type="file"
+              id="image"
+              name="image"
+              accept="image/*"
+              className="mt-1 w-full rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-900 focus:border-pink-500 focus:ring-2 focus:ring-pink-200 transition-all duration-200"
+            />
+            <p className="mt-1 text-xs text-gray-500">Leave empty to keep current image</p>
           </div>
 
           <div className="flex space-x-4">
