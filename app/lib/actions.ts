@@ -200,7 +200,7 @@ export async function createUser(formData: FormData) {
 }
 
 export async function deleteTransaction(id: string) {
-  'use server';
+  "use server";
   let client;
   try {
     client = await pool.connect();
@@ -213,12 +213,14 @@ export async function deleteTransaction(id: string) {
     if (result.rowCount === 0) {
       throw new Error(`No transaction found with id ${id}`);
     }
-    revalidatePath('/dashboard/report');
+    revalidatePath("/dashboard/report");
+    redirect("/dashboard/report"); // Redirect hanya jika sukses
   } catch (error) {
-    console.error('Failed to delete transaction:', error);
-    throw new Error('Failed to delete transaction: ' + (error instanceof Error ? error.message : 'Unknown error'));
+    console.error("Failed to delete transaction:", error);
+    throw new Error("Failed to delete transaction: " + (error instanceof Error ? error.message : "Unknown error"));
   } finally {
-    if (client) client.release();
+    if (client) {
+      await client.release();
+    }
   }
-  redirect('/dashboard/report');
 }
