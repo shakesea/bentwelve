@@ -22,4 +22,4 @@ export async function middleware(request: NextRequest) {
 // Konfigurasi path yang akan diproses oleh middleware
 export const config = {
   matcher: ["/", "/register"]
-};
+}

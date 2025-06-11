@@ -66,11 +66,15 @@ function FlowersContent() {
           setFilteredProducts(data.products || []);
           setTotalPages(Math.ceil((data.totalCount || 0) / ITEMS_PER_PAGE));
 
-          const categoryCounts: { [key: string]: number } = {};
-          data.products.forEach((product: Product) => {
-            categoryCounts[product.category] = (categoryCounts[product.category] || 0) + 1;
-          });
-
+          // Fetch total category counts
+          const totalResponse = await fetch(`/api/total-categories?q=${encodeURIComponent(searchQuery)}`);
+          if (!totalResponse.ok) {
+            const text = await totalResponse.text(); // Debug respons mentah
+            console.error("Total response error:", text);
+            throw new Error("Failed to fetch categories");
+          }
+          const totalData = await totalResponse.json();
+          const categoryCounts: { [key: string]: number } = totalData.categoryCounts || {};
           const categoryList = Object.entries(categoryCounts).map(([name, count]) => ({
             name,
             count,

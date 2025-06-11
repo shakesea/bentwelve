@@ -53,7 +53,7 @@ const sql = postgres(process.env.DATABASE_URL || "");
 
 // Update fetchProducts to support pagination
 export async function fetchProducts(searchTerm: string = '', currentPage: number = 1) {
-  const PAGE_SIZE = 10;
+  const PAGE_SIZE = 12;
   const offset = (currentPage - 1) * PAGE_SIZE;
 
   try {
@@ -72,6 +72,31 @@ export async function fetchProducts(searchTerm: string = '', currentPage: number
   }
 }
 
+export async function fetchAllProducts(searchTerm: string = '') {
+  try {
+    const totalCount = await fetchProductCount(searchTerm);
+    const allPages = Math.ceil(totalCount / 12); 
+    let allProducts: Product[] = [];
+
+    for (let page = 1; page <= allPages; page++) {
+      const products = await fetchProducts(searchTerm, page);
+      // Map each product to ensure it matches the Product interface
+      const typedProducts: Product[] = products.map((p: any) => ({
+        id: p.id,
+        name: p.name,
+        price: p.price,
+        category: p.category,
+        image: p.image
+      }));
+      allProducts = [...allProducts, ...typedProducts];
+    }
+
+    return allProducts;
+  } catch (error) {
+    console.error('Error fetching all products:', error);
+    throw new Error('Failed to fetch all products.');
+  }
+}
 // Add fetchProductCount to get total number of matching products
 export async function fetchProductCount(searchTerm: string = '') {
   try {
@@ -164,7 +189,7 @@ export async function fetchMostSoldProduct() {
 }
 
 export async function fetchFilteredInvoices(query: string = '', currentPage: number = 1) {
-  const PAGE_SIZE = 10;
+  const PAGE_SIZE = 12
   const offset = (currentPage - 1) * PAGE_SIZE;
 
   try {
@@ -183,7 +208,7 @@ export async function fetchFilteredInvoices(query: string = '', currentPage: num
 }
 
 export async function fetchFilteredTransactions(query: string = '', currentPage: number = 1) {
-  const PAGE_SIZE = 10;
+  const PAGE_SIZE = 12
   const offset = (currentPage - 1) * PAGE_SIZE;
 
   try {
