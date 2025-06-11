@@ -129,9 +129,14 @@ export default function FlowersPage() {
       <section className={styles.specialtySection}>
         <h2 className={styles.sectionHeading}>Spesialisasi Kami</h2>
         <div className={styles.specialtyImages}>
-          <Image src="/f1.png" alt="Spesialisasi 1" width={200} height={200} className={styles.specialtyImage} />
-          <Image src="/f2.png" alt="Spesialisasi 2" width={200} height={200} className={styles.specialtyImage} />
-          <Image src="/f3.png" alt="Spesialisasi 3" width={200} height={200} className={styles.specialtyImage} />
+          <Image src="/f1.png" alt="Buket Bunga" width={200} height={200} className={styles.specialtyImage} />
+          <Image src="/f2.png" alt="Buket Pernikahan" width={200} height={200} className={styles.specialtyImage} />
+          <Image src="/f3.png" alt="Buket Wisuda" width={200} height={200} className={styles.specialtyImage} />
+        </div>
+        <div className={styles.specialtyButtons}>
+          <a href="/customers/flowers" className={styles.specialtyButton}>Buket Bunga</a>
+          <a href="/customers/flowers" className={styles.specialtyButton}>Buket Pernikahan</a>
+          <a href="/customers/flowers" className={styles.specialtyButton}>Buket Wisuda</a>
         </div>
       </section>
 
@@ -140,45 +145,60 @@ export default function FlowersPage() {
         <div className={styles.serviceItems}>
           <div className={styles.serviceItem}>
             <Image src="/chatgpt1.png" alt="Sentuhan Pribadi" width={200} height={200} className={styles.serviceImage} />
-            <h3 className={styles.serviceHeading}>Terhubung Secara Pribadi</h3>
-            <p className={styles.serviceDescription}>Layanan yang dapat disesuaikan...</p>
-            <a href="#pelajari-lebih-lanjut" className={styles.serviceLink}>Pelajari Lebih Lanjut</a>
+            <h3 className={styles.serviceHeading}>Langsung Terhubung</h3>
+            <p className={styles.serviceDescription}> Sesuaikan layananmu</p>
+            <a href="https://web.whatsapp.com/" className={styles.serviceLinkButton}>Hubungi Lebih Lanjut</a>
           </div>
           <div className={styles.serviceItem}>
             <Image src="/chatgpt3.png" alt="Butuh Bunga Sekarang?" width={200} height={200} className={styles.serviceImage} />
-            <h3 className={styles.serviceHeading}>Butuh Bunga Sekarang?</h3>
+            <h3 className={styles.serviceHeading}>Mau Bunga??</h3>
             <p className={styles.serviceDescription}>Pesan di hari yang sama...</p>
-            <a href="#pelajari-lebih-lanjut" className={styles.serviceLink}>Pelajari Lebih Lanjut</a>
+            <a href="https://web.whatsapp.com/" className={styles.serviceLinkButton}>Hubungi Lebih Lanjut</a>
           </div>
           <div className={styles.serviceItem}>
             <Image src="/chatgpt2.png" alt="Jaminan Kepuasan" width={200} height={200} className={styles.serviceImage} />
             <h3 className={styles.serviceHeading}>Jaminan Kepuasan</h3>
             <p className={styles.serviceDescription}>Kepuasan terjamin...</p>
-            <a href="#pelajari-lebih-lanjut" className={styles.serviceLink}>Pelajari Lebih Lanjut</a>
+            <a href="https://web.whatsapp.com/" className={styles.serviceLinkButton}>Hubungi Lebih Lanjut</a>
           </div>
         </div>
       </section>
 
-      <section className={styles.locationSection}>
-        <div className={styles.locationContent}>
-          <h2 className={styles.sectionHeading}>Lokasi Kami</h2>
-          <p className={styles.locationText}>
-            Jl. Melati Indah No. 27, Kel. Sakura, Kec. Bloomville, Kota Florencia 12345 🌸
-          </p>
-          <button className={styles.locationButton}>Peta</button>
-        </div>
-        <Image src="/place.png" alt="Lokasi Toko" width={300} height={200} className={styles.locationImage} />
-      </section>
-
+<section className={styles.locationSection}>
+  <div className={styles.locationContent}>
+    <h2 className={styles.sectionHeading}>Lokasi Kami</h2>
+    <p className={styles.locationText}>
+      Jl. Melati Indah No. 27, Kel. Sakura, Kec. Bloomville, Kota Florencia 12345 🌸
+    </p>
+    <a
+      href="https://g.co/kgs/NK5nakZ"
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      <button className={styles.locationButton}>Peta</button>
+    </a>
+  </div>
+  <Image
+    src="/place.png"
+    alt="Lokasi Toko"
+    width={300}
+    height={200}
+    className={styles.locationImage}
+  />
+</section>
       <footer className={styles.footer}>
         <div className={styles.footerContent}>
           <h3 className={styles.footerHeading}>Mekar Bersama Kami</h3>
-          <p className={styles.footerSubheading}>Gabung dengan Tim Kami</p>
           <div className={styles.corporateGifting}>
-            <h4 className={styles.corporateHeading}>Hadiah Perusahaan</h4>
-            <p className={styles.corporateText}>Isi formulir di bawah ini...</p>
-            <a href="#kontak" className={styles.corporateLink}>
-              Mari berkolaborasi dengan Flowerscotch
+            <Image
+              src="/jointeam.png" // Ganti dengan path gambar kolaborasi Anda
+              alt="Kolaborasi"
+              width={400}
+              height={200}
+              className={styles.collaborationImage}
+            />
+            <a href="https://forms.gle/3gRKyrdt5BQjYrci6" target="_blank" rel="noopener noreferrer" className={styles.corporateLinkButton}>
+              Isi Formulir Sekarang
             </a>
           </div>
         </div>
