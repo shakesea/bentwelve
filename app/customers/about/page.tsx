@@ -66,19 +66,40 @@ export default function AboutPage() {
       {/* Team Monkey */}
       <section className="text-center py-12 px-4">
         <h2 className="text-3xl font-bold mb-8">
-          Team <span className="text-pink-500">Monkey</span>
+          Team <span className="text-pink-500">Flowerscotch</span>
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 max-w-6xl mx-auto">
-          {[1, 2, 3, 4].map((_, i) => (
+          {[
+            {
+              name: 'Daniel Christantio',
+              role: 'Owner Flowerscotch',
+              image: '/daniel.jpg',
+            },
+            {
+              name: 'Giovanni Wahyu Pratama',
+              role: 'Florist',
+              image: '/jopan.jpg',
+            },
+            {
+              name: 'Kalvin Ardian Chi',
+              role: 'Customer Service',
+              image: '/kalvin.jpg',
+            },
+            {
+              name: 'Nicholas Prakoswa',
+              role: 'Pemasaran dan Media Sosial',
+              image: '/ayau.jpg',
+            },
+          ].map((member, i) => (
             <div key={i} className="bg-white rounded-xl shadow-md overflow-hidden">
               <img
-                src="/customers/monyet-lucu.jpg"
-                alt="Team Member"
+                src={member.image}
+                alt={member.name}
                 className="w-full h-48 object-cover rounded-t-xl"
               />
               <div className="p-4">
-                <p className="text-pink-600 font-semibold text-lg">Daniel</p>
-                <p className="text-sm text-gray-500">Pahlawan Monyet</p>
+                <p className="text-pink-600 font-semibold text-lg">{member.name}</p>
+                <p className="text-sm text-gray-500">{member.role}</p>
               </div>
             </div>
           ))}

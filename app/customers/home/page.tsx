@@ -47,13 +47,34 @@ export default function FlowersPage() {
   const [currentIndex, setCurrentIndex] = useState(0);
 
   useEffect(() => {
+    // Carousel interval
     const interval = setInterval(() => {
       setCurrentIndex((prevIndex) =>
         prevIndex === carouselItems.length - 1 ? 0 : prevIndex + 1
       );
     }, 5000);
 
-    return () => clearInterval(interval);
+    // Intersection Observer untuk fade-in sections
+    const sections = document.querySelectorAll(
+      `.${styles.specialtySection}, .${styles.servicesSection}, .${styles.locationSection}`
+    );
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add(styles.fadeIn);
+          }
+        });
+      },
+      { threshold: 0.1 }
+    );
+
+    sections.forEach((section) => observer.observe(section));
+
+    return () => {
+      clearInterval(interval);
+      sections.forEach((section) => observer.unobserve(section));
+    };
   }, []);
 
   const handlePrev = () => {
@@ -81,7 +102,9 @@ export default function FlowersPage() {
             {carouselItems.map((item, index) => (
               <div
                 key={index}
-                className={`${styles.carouselItem} ${index === currentIndex ? 'block' : 'hidden'}`}
+                className={`${styles.carouselItem} ${
+                  index === currentIndex ? 'block ' + styles.fadeIn : 'hidden'
+                }`}
               >
                 <Image
                   src={item.image}
@@ -96,7 +119,9 @@ export default function FlowersPage() {
                   {carouselItems.map((_, i) => (
                     <span
                       key={i}
-                      className={`${styles.dot} ${i === currentIndex ? styles.activeDot : ''}`}
+                      className={`${styles.dot} ${
+                        i === currentIndex ? styles.activeDot : ''
+                      }`}
                       onClick={() => setCurrentIndex(i)}
                     />
                   ))}
@@ -104,7 +129,9 @@ export default function FlowersPage() {
 
                 <div className={styles.carouselText}>
                   <h1 className={styles.carouselHeading}>{item.heading}</h1>
-                  <p className={styles.carouselSubheading}>{item.subheading}</p>
+                  <p className={`${styles.carouselSubheading} ${item.subheadingColor}`}>
+                    {item.subheading}
+                  </p>
                   <a href="#kontak" className={styles.carouselLink}>
                     {item.description}
                   </a>
@@ -119,87 +146,161 @@ export default function FlowersPage() {
         </section>
       </header>
 
-      {/* Bagian lain tidak berubah */}
+      {/* Welcome Section */}
       <div className={styles.welcomeSection}>
         <h1 className={styles.welcomeText}>
           <Welcome />
         </h1>
       </div>
 
+      {/* Specialty Section */}
       <section className={styles.specialtySection}>
         <h2 className={styles.sectionHeading}>Spesialisasi Kami</h2>
         <div className={styles.specialtyImages}>
-          <Image src="/f1.png" alt="Buket Bunga" width={200} height={200} className={styles.specialtyImage} />
-          <Image src="/f2.png" alt="Buket Pernikahan" width={200} height={200} className={styles.specialtyImage} />
-          <Image src="/f3.png" alt="Buket Wisuda" width={200} height={200} className={styles.specialtyImage} />
+          <Image
+            src="/f1.png"
+            alt="Buket Bunga"
+            width={200}
+            height={200}
+            className={styles.specialtyImage}
+          />
+          <Image
+            src="/f2.png"
+            alt="Buket Pernikahan"
+            width={200}
+            height={200}
+            className={styles.specialtyImage}
+          />
+          <Image
+            src="/f3.png"
+            alt="Buket Wisuda"
+            width={200}
+            height={200}
+            className={styles.specialtyImage}
+          />
         </div>
         <div className={styles.specialtyButtons}>
-          <a href="/customers/flowers" className={styles.specialtyButton}>Buket Bunga</a>
-          <a href="/customers/flowers" className={styles.specialtyButton}>Buket Pernikahan</a>
-          <a href="/customers/flowers" className={styles.specialtyButton}>Buket Wisuda</a>
+          <a href="/customers/flowers" className={styles.specialtyButton}>
+            Buket Bunga
+          </a>
+          <a href="/customers/flowers" className={styles.specialtyButton}>
+            Buket Pernikahan
+          </a>
+          <a href="/customers/flowers" className={styles.specialtyButton}>
+            Buket Wisuda
+          </a>
         </div>
       </section>
 
+      {/* Services Section */}
       <section className={styles.servicesSection}>
         <h2 className={styles.sectionHeading}>Layanan Flowerscotch</h2>
         <div className={styles.serviceItems}>
           <div className={styles.serviceItem}>
-            <Image src="/chatgpt1.png" alt="Sentuhan Pribadi" width={200} height={200} className={styles.serviceImage} />
+            <Image
+              src="/chatgpt1.png"
+              alt="Sentuhan Pribadi"
+              width={200}
+              height={200}
+              className={styles.serviceImage}
+            />
             <h3 className={styles.serviceHeading}>Langsung Terhubung</h3>
-            <p className={styles.serviceDescription}> Sesuaikan layananmu</p>
-            <a href="https://web.whatsapp.com/" className={styles.serviceLinkButton}>Hubungi Lebih Lanjut</a>
+            <p className={styles.serviceDescription}>Sesuaikan layananmu</p>
+            <a
+              href="https://web.whatsapp.com/"
+              className={styles.serviceLinkButton}
+            >
+              Hubungi Lebih Lanjut
+            </a>
           </div>
           <div className={styles.serviceItem}>
-            <Image src="/chatgpt3.png" alt="Butuh Bunga Sekarang?" width={200} height={200} className={styles.serviceImage} />
+            <Image
+              src="/chatgpt3.png"
+              alt="Butuh Bunga Sekarang?"
+              width={200}
+              height={200}
+              className={styles.serviceImage}
+            />
             <h3 className={styles.serviceHeading}>Mau Bunga??</h3>
-            <p className={styles.serviceDescription}>Pesan di hari yang sama...</p>
-            <a href="https://web.whatsapp.com/" className={styles.serviceLinkButton}>Hubungi Lebih Lanjut</a>
+            <p className={styles.serviceDescription}>
+              Pesan di hari yang sama...
+            </p>
+            <a
+              href="https://web.whatsapp.com/"
+              className={styles.serviceLinkButton}
+            >
+              Hubungi Lebih Lanjut
+            </a>
           </div>
           <div className={styles.serviceItem}>
-            <Image src="/chatgpt2.png" alt="Jaminan Kepuasan" width={200} height={200} className={styles.serviceImage} />
+            <Image
+              src="/chatgpt2.png"
+              alt="Jaminan Kepuasan"
+              width={200}
+              height={200}
+              className={styles.serviceImage}
+            />
             <h3 className={styles.serviceHeading}>Jaminan Kepuasan</h3>
             <p className={styles.serviceDescription}>Kepuasan terjamin...</p>
-            <a href="https://web.whatsapp.com/" className={styles.serviceLinkButton}>Hubungi Lebih Lanjut</a>
+            <a
+              href="https://web.whatsapp.com/"
+              className={styles.serviceLinkButton}
+            >
+              Hubungi Lebih Lanjut
+            </a>
           </div>
         </div>
       </section>
 
-<section className={styles.locationSection}>
-  <div className={styles.locationContent}>
-    <h2 className={styles.sectionHeading}>Lokasi Kami</h2>
-    <p className={styles.locationText}>
-      Jl. Melati Indah No. 27, Kel. Sakura, Kec. Bloomville, Kota Florencia 12345 🌸
-    </p>
-    <a
-      href="https://g.co/kgs/NK5nakZ"
-      target="_blank"
-      rel="noopener noreferrer"
-    >
-      <button className={styles.locationButton}>Peta</button>
-    </a>
-  </div>
-  <Image
-    src="/place.png"
-    alt="Lokasi Toko"
-    width={300}
-    height={200}
-    className={styles.locationImage}
-  />
-</section>
+      {/* Location Section */}
+      <section className={styles.locationSection}>
+        <div className={styles.locationContent}>
+          <h2 className={styles.sectionHeading}>Lokasi Kami</h2>
+          <p className={styles.locationText}>
+            Jl. Melati Indah No. 27, Kel. Sakura, Kec. Bloomville, Kota
+            Florencia 12345 🌸
+          </p>
+          <a
+            href="https://g.co/kgs/NK5nakZ"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <button className={styles.locationButton}>Peta</button>
+          </a>
+        </div>
+        <Image
+          src="/place.png"
+          alt="Lokasi Toko"
+          width={300}
+          height={200}
+          className={styles.locationImage}
+        />
+      </section>
+
+      {/* Footer */}
       <footer className={styles.footer}>
         <div className={styles.footerContent}>
           <h3 className={styles.footerHeading}>Mekar Bersama Kami</h3>
           <div className={styles.corporateGifting}>
-            <Image
-              src="/jointeam.png" // Ganti dengan path gambar kolaborasi Anda
-              alt="Kolaborasi"
-              width={400}
-              height={200}
-              className={styles.collaborationImage}
-            />
-            <a href="https://forms.gle/3gRKyrdt5BQjYrci6" target="_blank" rel="noopener noreferrer" className={styles.corporateLinkButton}>
-              Isi Formulir Sekarang
-            </a>
+            <div className={styles.imageWrapper}>
+              <Image
+                src="/jointeam.png"
+                alt="Kolaborasi"
+                width={400}
+                height={200}
+                className={styles.collaborationImage}
+              />
+            </div>
+            <div className={styles.buttonWrapper}>
+              <a
+                href="https://forms.gle/3gTKijdt5BQjYrci6"
+                target="_blank"
+                rel="noopener noreferrer"
+                className={styles.corporateLinkButton}
+              >
+                Isi Formulir Sekarang
+              </a>
+            </div>
           </div>
         </div>
       </footer>
