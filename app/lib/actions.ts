@@ -198,3 +198,27 @@ export async function createUser(formData: FormData) {
   // Pindahkan redirect di luar try-catch
   redirect("/");
 }
+
+export async function deleteTransaction(id: string) {
+  'use server';
+  let client;
+  try {
+    client = await pool.connect();
+    console.log("Attempting to delete transaction with id:", id); // Log id untuk debugging
+    const result = await client.query(
+      `DELETE FROM transactions WHERE id_transaksi = $1`,
+      [id]
+    );
+    console.log("Delete result:", result); // Log hasil query
+    if (result.rowCount === 0) {
+      throw new Error(`No transaction found with id ${id}`);
+    }
+    revalidatePath('/dashboard/report');
+  } catch (error) {
+    console.error('Failed to delete transaction:', error);
+    throw new Error('Failed to delete transaction: ' + (error instanceof Error ? error.message : 'Unknown error'));
+  } finally {
+    if (client) client.release();
+  }
+  redirect('/dashboard/report');
+}

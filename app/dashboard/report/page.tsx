@@ -1,6 +1,7 @@
-// app/report/page.tsx
+// app/dashboard/report/page.tsx
 import { fetchFilteredTransactions, fetchTransactionCount } from '@/app/lib/data';
 import { notFound } from 'next/navigation';
+import { deleteTransaction } from '@/app/lib/actions';
 
 export default async function ReportPage({
   searchParams,
@@ -62,12 +63,13 @@ export default async function ReportPage({
               <th className="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Buyer Name</th>
               <th className="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Date Time</th>
               <th className="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Total Price</th>
+              <th className="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200 animate-fade-in">
             {transactions.length === 0 ? (
               <tr>
-                <td colSpan={5} className="px-6 py-4 text-center text-gray-500">
+                <td colSpan={6} className="px-6 py-4 text-center text-gray-500">
                   No transactions found.
                 </td>
               </tr>
@@ -97,6 +99,18 @@ export default async function ReportPage({
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                     {'Rp ' + Number(r.total_harga).toLocaleString('id-ID')}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                    <div className="flex space-x-4">
+                      <form action={deleteTransaction.bind(null, r.id_transaksi)} className="inline-block">
+                        <button
+                          type="submit"
+                          className="text-red-600 hover:text-red-800 font-medium transition-colors duration-200"
+                        >
+                          🗑️ Delete
+                        </button>
+                      </form>
+                    </div>
                   </td>
                 </tr>
               ))
