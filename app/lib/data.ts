@@ -345,16 +345,30 @@ export interface BestSellingProduct {
 }
 
 export async function fetchBestSellingProducts() {
-  return await sql`
-    SELECT 
-      nama_produk AS name,
-      COALESCE(total_sold, 0) AS sales,
-      harga AS price
-    FROM public.products
-    ORDER BY total_sold DESC NULLS LAST
-    LIMIT 5
-  `;
-} 
+  try {
+    const result = await sql`
+      SELECT 
+        nama_produk AS name,
+        COALESCE(total_sold, 0) AS sales,
+        harga AS price
+      FROM public.products
+      ORDER BY total_sold DESC NULLS LAST
+      LIMIT 5
+    `;
+
+    // Map hasil query ke tipe BestSellingProduct
+    const products: BestSellingProduct[] = result.map((row: any) => ({
+      name: row.name || "Unknown",
+      sales: Number(row.sales) || 0, // Pastikan tipe number
+      price: Number(row.price) || 0, // Pastikan tipe number
+    }));
+
+    return products;
+  } catch (error) {
+    console.error("Error fetching best selling products:", error);
+    return [];
+  }
+}
 
 export interface LatestTransaction {
   title: string; // id_transaksi

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -26,7 +26,18 @@ type Category = {
   count: number;
 };
 
-export default function FlowersPage() {
+type CartItem = {
+  id_produk: string;
+  title: string;
+  price: number | null;
+  img: string;
+  description: string;
+  variant: string;
+  customRequest: string;
+  quantity: number;
+};
+
+function FlowersContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [products, setProducts] = useState<Product[]>([]);
@@ -38,10 +49,9 @@ export default function FlowersPage() {
   const [searchQuery, setSearchQuery] = useState<string>(searchParams.get("q") || "");
   const [sortOption, setSortOption] = useState<string>("Terbaru");
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
-  const [currentPage, setCurrentPage] = useState<number>(
-    Number(searchParams.get("page")) || 1
-  );
+  const [currentPage, setCurrentPage] = useState<number>(Number(searchParams.get("page")) || 1);
   const [totalPages, setTotalPages] = useState<number>(1);
+  const [cart, setCart] = useState<CartItem[]>([]);
   const ITEMS_PER_PAGE = 12;
 
   useEffect(() => {
@@ -152,42 +162,36 @@ export default function FlowersPage() {
   const addToCart = () => {
     if (!selectedProduct) return;
 
-    let cart = [];
-    if (typeof window !== 'undefined') {
-      cart = JSON.parse(localStorage.getItem("cart") || "[]");
-    }
     const variant = "Round Arrangement";
     const customRequest = "";
 
     const existingItemIndex = cart.findIndex(
-      (item: any) => item.id_produk === selectedProduct.id_produk && 
-                    item.variant === variant && 
-                    item.customRequest === customRequest
+      (item) => item.id_produk === selectedProduct.id_produk && 
+                item.variant === variant && 
+                item.customRequest === customRequest
     );
 
     if (existingItemIndex >= 0) {
-      cart[existingItemIndex].quantity += quantity;
+      const updatedCart = [...cart];
+      updatedCart[existingItemIndex].quantity += quantity;
+      setCart(updatedCart);
     } else {
-      cart.push({
+      const newItem: CartItem = {
         id_produk: selectedProduct.id_produk,
         title: selectedProduct.title,
-        price: selectedProduct.discount || selectedProduct.price || 0, // Use discount if available
+        price: selectedProduct.discount || selectedProduct.price || 0,
         img: selectedProduct.img,
         description: selectedProduct.description || "",
         variant,
         customRequest,
         quantity,
-      });
+      };
+      setCart([...cart, newItem]);
     }
 
-    if (typeof window !== 'undefined') {
-      localStorage.setItem("cart", JSON.stringify(cart));
-    }
     setSelectedProduct(null);
-    setCart(cart); // Update local state to reflect cart (optional for UI feedback)
 
     alert(`Menambahkan ${quantity} item '${selectedProduct.title}' ke keranjang!`);
-    // Optional: Redirect to cart page
     if (confirm("Ingin melihat keranjang sekarang?")) {
       router.push("/customers/cart");
     }
@@ -394,5 +398,13 @@ export default function FlowersPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function FlowersPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <FlowersContent />
+    </Suspense>
   );
 }

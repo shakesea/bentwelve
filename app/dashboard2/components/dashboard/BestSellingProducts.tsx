@@ -1,4 +1,3 @@
-// app/dashboard2/components/dashboard/BestSellingProducts.tsx
 'use client';
 
 import { BestSellingProduct } from '@/app/lib/data';

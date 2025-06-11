@@ -1,15 +1,18 @@
 // app/AuthRegister.tsx
 "use client";
 
-import { FaUser, FaEnvelope, FaLock, FaGoogle } from "react-icons/fa";
+import { FaUser, FaEnvelope, FaLock } from "react-icons/fa";
 import Link from "next/link";
-import { useRef, FormEvent } from "react";
-import { createUser } from 'app/lib/actions'; // Impor dari actions.ts
+import { useRef, FormEvent, useState } from "react";
+import { createUser } from 'app/lib/actions';
+import { useRouter } from 'next/navigation';
 
 const AuthRegister = () => {
+  const router = useRouter();
   const usernameRef = useRef<HTMLInputElement>(null);
   const emailRef = useRef<HTMLInputElement>(null);
   const passwordRef = useRef<HTMLInputElement>(null);
+  const [notification, setNotification] = useState<{message: string, type: 'success' | 'error'} | null>(null);
 
   const handleRegister = async (e: FormEvent) => {
   e.preventDefault();
@@ -20,15 +23,25 @@ const AuthRegister = () => {
 
   try {
     await createUser(formData);
-    alert("Registration successful! Redirecting to login...");
+    setNotification({ message: "Registration successful! Redirecting to login...", type: 'success' });
+    
+    // Redirect to login page after a short delay
+    setTimeout(() => {
+      router.push('/login');
+    }, 2000);
   } catch (error) {
-    alert((error as Error).message || "Registration failed");
+    setNotification({ message: (error as Error).message || "Registration failed", type: 'error' });
   }
 };
 
   return (
     <div className="w-1/2 p-10 flex flex-col justify-center items-center text-center">
       <h2 className="text-2xl font-bold text-black mb-6">Registration</h2>
+      {notification && (
+        <div className={`w-full max-w-sm p-3 mb-4 rounded ${notification.type === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+          {notification.message}
+        </div>
+      )}
       <form onSubmit={handleRegister} className="w-full max-w-sm space-y-4">
         {/* Username */}
         <div className="relative">

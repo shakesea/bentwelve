@@ -2,7 +2,6 @@ import {
   fetchBestSellingProducts,
   fetchLatestTransactions,
 } from "@/app/lib/data";
-
 import StatsCards from "@/app/dashboard2/components/dashboard/StatsCards";
 import RevenueGraph from "@/app/dashboard2/components/dashboard/RevenueGraph";
 import ExpensesGraph from "@/app/dashboard2/components/dashboard/ExpensesGraph";
@@ -23,7 +22,6 @@ export default async function Dashboard() {
   return (
     <div className="flex min-h-screen bg-gray-100">
       <main className="flex-1 p-6">
-        {/* Wrapper untuk memposisikan profil ke kanan atas */}
         <div className="flex justify-end mb-6">
           <ProfileSummary />
         </div>
