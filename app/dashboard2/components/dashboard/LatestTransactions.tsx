@@ -17,7 +17,7 @@ export default function LatestTransactions({ transactions }: LatestTransactionsP
           transactions.map((transaction) => (
             <div
               key={transaction.title}
-              className="bg-gray-50 p-4 rounded-lg space-y-2 border border-gray-200"
+              className="bg-gray-50 p-4 rounded-lg space-y-2 border border-gray-200 "
             >
               <div className="flex justify-between items-center">
                 <div>

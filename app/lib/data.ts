@@ -51,17 +51,16 @@ export interface Transaction {
 // Inisialisasi koneksi database
 const sql = postgres(process.env.DATABASE_URL || "");
 
-// Update fetchProducts to support pagination
+// Fetch products with pagination
 export async function fetchProducts(searchTerm: string = '', currentPage: number = 1) {
-  const PAGE_SIZE = 12;
+  const PAGE_SIZE = 10;
   const offset = (currentPage - 1) * PAGE_SIZE;
 
   try {
     return await sql`
       SELECT id_produk as id, nama_produk as name, harga as price, kategori as category, gambar as image
       FROM public.products
-      WHERE kategori IN ('Bunga Potong', 'Rangkaian Bunga')
-        AND nama_produk ILIKE ${'%' + searchTerm + '%'}
+      WHERE nama_produk ILIKE ${'%' + searchTerm + '%'}
       ORDER BY created_at DESC
       LIMIT ${PAGE_SIZE}
       OFFSET ${offset}
@@ -75,7 +74,7 @@ export async function fetchProducts(searchTerm: string = '', currentPage: number
 export async function fetchAllProducts(searchTerm: string = '') {
   try {
     const totalCount = await fetchProductCount(searchTerm);
-    const allPages = Math.ceil(totalCount / 12); 
+    const allPages = Math.ceil(totalCount / 10); 
     let allProducts: Product[] = [];
 
     for (let page = 1; page <= allPages; page++) {
@@ -97,14 +96,13 @@ export async function fetchAllProducts(searchTerm: string = '') {
     throw new Error('Failed to fetch all products.');
   }
 }
-// Add fetchProductCount to get total number of matching products
+// Get total number of matching products for pagination
 export async function fetchProductCount(searchTerm: string = '') {
   try {
     const data = await sql`
       SELECT COUNT(*) as total
       FROM public.products
-      WHERE kategori IN ('Bunga Potong', 'Rangkaian Bunga')
-        AND nama_produk ILIKE ${'%' + searchTerm + '%'}
+      WHERE nama_produk ILIKE ${'%' + searchTerm + '%'}
     `;
     return Number(data[0].total) || 0;
   } catch (error) {
@@ -126,12 +124,17 @@ export async function fetchTotalUsers() {
   }
 }
 
-export async function fetchTransactions() {
+export async function fetchTransactions(currentPage: number = 1) {
+  const PAGE_SIZE = 10;
+  const offset = (currentPage - 1) * PAGE_SIZE;
+  
   try {
     return await sql`
-      SELECT id_transaksi, id_produk, nama_pembeli, tanggal, total_harga
+      SELECT id_transaksi, id_produk, nama_pembeli, tanggal, total_harga, status
       FROM public.transactions
       ORDER BY tanggal DESC
+      LIMIT ${PAGE_SIZE}
+      OFFSET ${offset}
     `;
   } catch (error) {
     console.error('Error fetching transactions:', error);
@@ -189,7 +192,7 @@ export async function fetchMostSoldProduct() {
 }
 
 export async function fetchFilteredInvoices(query: string = '', currentPage: number = 1) {
-  const PAGE_SIZE = 12
+  const PAGE_SIZE = 10;
   const offset = (currentPage - 1) * PAGE_SIZE;
 
   try {
@@ -208,7 +211,7 @@ export async function fetchFilteredInvoices(query: string = '', currentPage: num
 }
 
 export async function fetchFilteredTransactions(query: string = '', currentPage: number = 1) {
-  const PAGE_SIZE = 12
+  const PAGE_SIZE = 10;
   const offset = (currentPage - 1) * PAGE_SIZE;
 
   try {
@@ -237,6 +240,19 @@ export async function fetchTransactionCount(query: string = '') {
   } catch (error) {
     console.error('Error fetching transaction count:', error);
     throw new Error('Failed to fetch transaction count.');
+  }
+}
+
+export async function fetchTotalTransactions() {
+  try {
+    const data = await sql`
+      SELECT COUNT(*) as total
+      FROM public.transactions
+    `;
+    return Number(data[0].total) || 0;
+  } catch (error) {
+    console.error('Error fetching total transactions:', error);
+    throw new Error('Failed to fetch total transactions.');
   }
 }
 
@@ -281,73 +297,58 @@ export async function fetchMonthlySales() {
 export async function fetchCardData() {
   try {
     const [productsResult, usersResult, revenueResult] = await Promise.all([
-      sql`
-        SELECT COUNT(*) as total
-        FROM public.products
-        WHERE kategori IN ('Bunga Potong', 'Rangkaian Bunga')
-          AND created_at <= NOW()
-      `,
+      sql`SELECT COUNT(*) as total FROM public.products`,
       sql`SELECT COUNT(*) as total FROM public.users`,
       sql`
         WITH sales AS (
-          SELECT SUM(t.total_harga) AS total_sales
-          FROM public.transactions t
-          JOIN public.transaction_items ti ON t.id_transaksi = ti.id_transaksi
-          JOIN public.products p ON ti.id_produk = p.id_produk
-          WHERE p.kategori IN ('Bunga Potong', 'Rangkaian Bunga')
-            AND t.tanggal >= '2025-01-01' AND t.tanggal <= NOW()
+          SELECT COALESCE(SUM(total_harga), 0) AS total_sales
+          FROM public.transactions
+          WHERE tanggal <= NOW()
         ),
         expenses AS (
-          SELECT SUM(jumlah_pengeluaran) AS total_expenses
+          SELECT COALESCE(SUM(jumlah_pengeluaran), 0) AS total_expenses
           FROM public.expenses
-          WHERE tanggal >= '2025-01-01' AND tanggal <= NOW()
+          WHERE tanggal <= NOW()
         )
-        SELECT
-          COALESCE(sales.total_sales, 0) AS total_sales,
-          COALESCE(expenses.total_expenses, 0) AS total_expenses,
-          COALESCE(sales.total_sales, 0) - COALESCE(expenses.total_expenses, 0) AS revenue
+        SELECT (sales.total_sales - expenses.total_expenses) AS revenue
         FROM sales, expenses
       `,
     ]);
 
     const totalProducts = Number(productsResult[0].total) || 0;
     const totalUsers = Number(usersResult[0].total) || 0;
-    const totalProfit = Number(revenueResult[0].revenue) || 0;
+    const totalProfit = Number(revenueResult[0]?.revenue) || 0;
 
     const [prevProductsResult, prevUsersResult, prevRevenueResult] = await Promise.all([
       sql`
         SELECT COUNT(*) as total
         FROM product_history
-        WHERE kategori IN ('Bunga Potong', 'Rangkaian Bunga')
-          AND snapshot_date = '2025-05-31 23:59:59'
+        WHERE snapshot_date = '2025-05-31 23:59:59'
       `,
       sql`SELECT COUNT(*) as total FROM user_history`,
       sql`
         WITH sales AS (
-          SELECT SUM(total_harga) AS total_sales
+          SELECT COALESCE(SUM(total_harga), 0) AS total_sales
           FROM transaction_history
           WHERE snapshot_date = '2025-05-31 23:59:59'
         ),
         expenses AS (
-          SELECT SUM(jumlah_pengeluaran) AS total_expenses
+          SELECT COALESCE(SUM(jumlah_pengeluaran), 0) AS total_expenses
           FROM expense_history
           WHERE snapshot_date = '2025-05-31 23:59:59'
         )
-        SELECT
-          COALESCE(sales.total_sales, 0) AS total_sales,
-          COALESCE(expenses.total_expenses, 0) AS total_expenses,
-          COALESCE(sales.total_sales, 0) - COALESCE(expenses.total_expenses, 0) AS revenue
+        SELECT (sales.total_sales - expenses.total_expenses) AS revenue
         FROM sales, expenses
       `,
     ]);
 
     const prevProducts = Number(prevProductsResult[0].total) || 0;
     const prevUsers = Number(prevUsersResult[0].total) || 0;
-    const prevProfit = Number(prevRevenueResult[0].revenue) || 0;
+    const prevProfit = Number(prevRevenueResult[0]?.revenue) || 0;
 
     const productChange = totalProducts - prevProducts;
     const userChange = totalUsers - prevUsers;
-    const profitChange = prevProfit > 0 ? ((totalProfit - prevProfit) / prevProfit) * 100 : 0;
+    const profitChange = prevProfit !== 0 ? ((totalProfit - prevProfit) / Math.abs(prevProfit)) * 100 : 0;
 
     return {
       totalProducts,

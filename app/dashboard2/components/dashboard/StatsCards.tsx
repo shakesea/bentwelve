@@ -1,4 +1,4 @@
-// app/components/StatsCards.tsx
+// app/dashboard2/components/dashboard/StatsCards.tsx
 import { fetchCardData } from '@/app/lib/data';
 
 export default async function StatsCards() {
@@ -49,7 +49,7 @@ export default async function StatsCards() {
           </h3>
           <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
           <p className={`flex items-center font-medium ${stat.color}`}>
-            <span className="mr-1">{stat.change !== '0' && stat.change !== '0%' ? (profitChange >= 0 ? '↑' : '↓') : ''}</span>
+            <span className="mr-1">{stat.change !== '0' && stat.change !== '0%' ? (stat.change.startsWith('+') ? '↑' : '↓') : ''}</span>
             {stat.change}
           </p>
         </div>
