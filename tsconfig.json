@@ -22,7 +22,7 @@
     "paths": {
       "@/*": ["./*"]
     },
-    "types": ["node", "next"] // Tambahkan ini
+    "types": ["node", "next"] // Tambahkan ini.
   },
   "include": [
     "next-env.d.ts",
