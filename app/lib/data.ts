@@ -373,20 +373,28 @@ export interface BestSellingProduct {
 export async function fetchBestSellingProducts() {
   try {
     const result = await sql`
+      WITH product_sales AS (
+        SELECT 
+          t.id_produk,
+          COUNT(t.id_produk) AS total_sold
+        FROM public.transactions t
+        GROUP BY t.id_produk
+      )
       SELECT 
-        nama_produk AS name,
-        COALESCE(total_sold, 0) AS sales,
-        harga AS price
-      FROM public.products
-      ORDER BY total_sold DESC NULLS LAST
+        p.nama_produk AS name,
+        COALESCE(ps.total_sold, 0) AS sales,
+        p.harga AS price
+      FROM public.products p
+      LEFT JOIN product_sales ps ON p.id_produk = ps.id_produk
+      ORDER BY ps.total_sold DESC NULLS LAST
       LIMIT 5
     `;
 
     // Map hasil query ke tipe BestSellingProduct
     const products: BestSellingProduct[] = result.map((row: any) => ({
       name: row.name || "Unknown",
-      sales: Number(row.sales) || 0, // Pastikan tipe number
-      price: Number(row.price) || 0, // Pastikan tipe number
+      sales: Number(row.sales) || 0,
+      price: Number(row.price) || 0,
     }));
 
     return products;

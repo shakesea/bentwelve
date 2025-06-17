@@ -62,8 +62,11 @@ export default function Sidebar() {
               key={link.name}
               href={link.href}
               onClick={(e) => {
-                e.preventDefault(); // Mencegah default behavior dari Link
-                if (link.onClick) link.onClick();
+                // Hanya mencegah default behavior untuk tombol Logout
+                if (link.name === "Logout") {
+                  e.preventDefault();
+                  if (link.onClick) link.onClick();
+                }
               }}
               className={clsx(
                 "flex items-center gap-1 p-3 rounded-r-full text-white relative group transition-all",

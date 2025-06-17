@@ -97,7 +97,7 @@ export function Header() {
         {isDropdownOpen && (
           <div className="absolute top-full right-0 mt-2 w-40 bg-white text-black rounded-lg shadow-lg py-2 z-10">
             <Link
-              href="/settings"
+              href="/customers/settings"
               className="block px-4 py-2 hover:bg-gray-100"
               onClick={() => setIsDropdownOpen(false)}
             >
